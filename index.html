@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mini Space (Pure Black v2 - Optimized)</title>
+
+    <style>
+        /* =============== 黑色(默认) =============== */
+        :root {
+            --primary-color: #1d9bf0;
+            --primary-hover: #1a8cd8;
+            --bg-color: #000000;
+            --card-bg: #000000;
+            --text-color: #e7e9ea;
+            --text-secondary: #71767b;
+            --border-color: #2f3336;
+            --input-bg: #000000;
+            --transition-speed: 0.3s;
+        }
+
+
+        /* =============== 白色 =============== */
+        body.light-mode {
+            --primary-color: #1d9bf0;
+            --bg-color: #ffffff;
+            --card-bg: #ffffff;
+            --text-color: #0f1419;
+            --text-secondary: #536471;
+            --border-color: #eff3f4;
+            --input-bg: #eff3f4;
+        }
+        
+        /* 黑色背景将图标颜色反转 */
+        .theme-icon {
+            filter: invert(1) brightness(2);
+            transition: filter 0.3s ease;
+        }
+
+        /* 当切换到白色模式时，恢复图标原始颜色 */
+        body.light-mode .theme-icon {
+            filter: invert(0) brightness(1);
+        }
+
+        /* =============== 全局样式 =============== */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            overflow-y: scroll;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        .wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1300px;
+            gap: 60px;
+            padding: 20px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        .main-feed {
+            flex: 1;
+            min-width: 0;
+            max-width: 850px;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            min-height: 100vh;
+            border-top: none;
+            border-bottom: none;
+        }
+
+        .card {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .sidebar .card {
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+
+
+        /* ================= 按钮与输入框 ================= */
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover {
+            background: var(--primary-hover);
+        }
+
+
+        button.btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+        button.btn-outline:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        body.light-mode button.btn-outline:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+
+        /* ================= 主题切换按钮 ================= */
+        .theme-toggle-icon {
+            position: absolute; 
+            top: 15px;
+            right: 15px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            z-index: 10;
+            overflow: hidden; 
+        }
+
+        .theme-toggle-icon:hover {
+            background: rgba(29, 155, 240, 0.1);
+        }
+
+        .theme-toggle-icon img {
+            position: absolute; 
+            width: 22px;
+            height: 22px;
+            transition: opacity var(--transition-speed) ease, transform var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .icon-moon { opacity: 0; transform: scale(0.5) rotate(-90deg); }
+        .icon-sun { opacity: 1; transform: scale(1) rotate(0deg); }
+
+        body.light-mode .icon-moon { 
+            opacity: 1; 
+            transform: scale(1) rotate(0deg); 
+        }
+        body.light-mode .icon-sun { 
+            opacity: 0; 
+            transform: scale(0.5) rotate(90deg); 
+        }
+
+
+        /* ================= 搜索框 ================= */
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .search-input {
+            width: 100%;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 12px 40px 12px 15px;
+            border-radius: 9999px;
+            outline: none;
+            font-size: 0.95rem;
+            transition: background var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed);
+        }
+        .search-input:focus {
+            border-color: var(--primary-color);
+        }
+        .search-icon-btn {
+            position: absolute;
+            right: 5px;
+            background: transparent;
+            color: var(--text-secondary);
+            padding: 8px;
+            border-radius: 50%;
+            transition: background var(--transition-speed), color var(--transition-speed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+        }
+        .search-icon-btn:hover {
+            background: rgba(29, 155, 240, 0.1);
+            color: var(--primary-color);
+        }
+
+        /* ================= === 新增：发布框工具栏样式 === ================= */
+        /* 为了方便维护，将发布框底部的样式统一在这里管理 */
+        
+        textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid transparent; /* 默认隐藏线 */
+            color: var(--text-color);
+            padding: 10px 0;
+            resize: none;
+            outline: none;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between; /* 左右两端分布 */
+            align-items: center; /* 垂直居中对齐 */
+            margin-top: 15px;
+        }
+
+        .tools-left {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .tool-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            color: var(--primary-color);
+            font-size: 14px;
+            transition: opacity 0.2s;
+        }
+
+        .tool-item:hover {
+            opacity: 0.8;
+        }
+
+        .tool-icon {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+        }
+
+        /* 标签输入框的美化 */
+        #tags {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid transparent;
+            color: var(--text-color);
+            outline: none;
+            width: 120px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        #tags:focus {
+            border-bottom: 1px solid var(--primary-color);
+        }
+        #tags::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .post-btn {
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        /* ================= 个人资料卡 ================= */
+        .profile-card {
+            text-align: center;
+            border: 1px solid var(--border-color) !important;
+            padding: 20px;
+            position: relative;
+        }
+        .profile-avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 10px auto 10px;
+            border: 2px solid var(--bg-color);
+            object-fit: cover;
+            background: var(--border-color);
+        }
+        .profile-name {
+            font-weight: 800;
+            font-size: 1.2rem;
+        }
+        .profile-bio {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+
+        /* ================= 推文布局 ================= */
+        .tweet-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .avatar-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            background: var(--border-color);
+            object-fit: cover;
+        }
+        .username {
+            font-weight: bold;
+            margin-right: 5px;
+            color: var(--text-color);
+        }
+        .timestamp {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .tweet-body {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-left: 50px;
+        }
+        .tweet-content-left {
+            flex: 1;
+            min-width: 0;
+        }
+        .tweet-text {
+            font-size: 1rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+        .tweet-media-right {
+            width: 120px;
+            height: 120px;
+            flex-shrink: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            display: none;
+        }
+        .tweet-media-right.active {
+            display: block;
+        }
+        .tweet-media-right img,
+        .tweet-media-right video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+
+        /* ================= Modal & Preview ================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal {
+            background: var(--bg-color);
+            padding: 25px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid var(--border-color);
+        }
+        .modal input[type="text"] {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            margin-bottom: 10px;
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            color: var(--text-color);
+            box-sizing: border-box;
+        }
+
+        /* Modal 内部布局样式 */
+        .modal-content-wrapper {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .modal-left-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-right-col {
+            width: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        /* 自定义上传按钮样式 */
+        .upload-avatar-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary-color);
+            border: 1px dashed var(--border-color);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 5px;
+            font-size: 0.9rem;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .upload-avatar-btn:hover {
+            background: rgba(29, 155, 240, 0.1);
+            border-color: var(--primary-color);
+        }
+        /* 头像预览圆图样式 */
+        .avatar-preview-circle {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-color);
+            background: var(--bg-color);
+            margin-top: 5px;
+        }
+        .preview-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+
+        #previewContainer {
+            display: none;
+            margin-top: 10px;
+            position: relative;
+            width: fit-content;
+        }
+        .remove-preview {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            line-height: 24px;
+            cursor: pointer;
+            z-index: 5;
+        }
+
+
+        /* ================= 响应式 ================= */
+        @media (max-width: 850px) { 
+            .wrapper {
+                flex-direction: column;
+                gap: 20px;
+            }
+            .sidebar {
+                width: 100%;
+                position: static;
+            }
+            .main-feed {
+                max-width: 100%;
+                border: none;
+            }
+            .modal-content-wrapper {
+                flex-direction: column-reverse;
+                align-items: center;
+            }
+            .modal-right-col {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <h2 style="margin-top:0">修改资料</h2>
+
+            <div class="modal-content-wrapper">
+                <div class="modal-left-col">
+                    <input type="text" id="editNickname" placeholder="昵称">
+                    <input type="text" id="editBio" placeholder="简介">
+                    
+                    <input type="file" id="editAvatarInput" accept="image/*" style="display:none;" onchange="handleAvatarPreview(this)">
+                    <label for="editAvatarInput" class="upload-avatar-btn">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M19 7v2.99s-1.99.01-2 0V7h-3s.01-1.99 0-2h3V2h2v3h3v2h-3zm-3 4V8h-3V5H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8h-3zM5 19l3-4 2 3 3-4 4 5H5z"/></svg>
+                        更换头像
+                    </label>
+                </div>
+
+                <div class="modal-right-col">
+                    <div class="preview-label">预览</div>
+                    <img id="editAvatarPreview" class="avatar-preview-circle" src="" alt="Avatar Preview" />
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button onclick="saveProfile()" style="flex:1">保存</button>
+                <button onclick="closeModal()" class="btn-outline" style="flex:1">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="wrapper">
+
+        <div class="sidebar">
+
+            <div class="card profile-card">
+                <button class="theme-toggle-icon" onclick="toggleTheme()" id="themeBtn" title="切换主题">
+                    <img src="https://img.icons8.com/?size=100&id=45475&format=png&color=FAB005" class="icon-sun" alt="Sun">
+                    <img src="https://img.icons8.com/?size=100&id=84045&format=png&color=FAB005" class="icon-moon" alt="Moon">
+                </button>
+
+                <img src="" id="displayAvatar" class="profile-avatar-large" />
+                <div class="profile-name" id="displayNickname">Loading...</div>
+                <div class="profile-bio" id="displayBio">...</div>
+
+                <button class="btn-outline" onclick="openModal()" style="width:100%">编辑资料</button>
+            </div>
+
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="搜索..." onkeydown="handleSearchKey(event)">
+                <button class="search-icon-btn" onclick="performSearch()">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M21.71 20.29l-5.01-5.01C17.54 13.68 18 11.91 18 10c0-4.41-3.59-8-8-8S2 5.59 2 10s3.59 8 8 8c1.91 0 3.68-.46 5.28-1.3l5.01 5.01c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41zM4 10c0-3.31 2.69-6 6-6s6 2.69 6 6-2.69 6-6 6-6-2.69-6-6z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="card">
+                <textarea id="content" placeholder="有什么新鲜事？" rows="6"></textarea>
+
+                <div id="previewContainer">
+                    <span class="remove-preview" onclick="clearPreview()">×</span>
+                    <div id="previewMedia"></div>
+                </div>
+
+                <div style="border-top: 1px solid var(--border-color); margin: 10px 0;"></div>
+
+                <div class="toolbar">
+                    <div class="tools-left">
+                        <input type="file" id="fileInput" accept="image/*,video/*" onchange="handleFileSelect()" style="display:none;">
+                        <label for="fileInput" class="tool-item">
+                            <img src="https://img.icons8.com/?size=100&id=6b7l1lBTegrx&format=png&color=1A1A1A" 
+                                alt="icon" class="theme-icon tool-icon">
+                            <span>图片/视频</span>
+                        </label>
+
+                        <div class="tool-item">
+                            <img src="https://img.icons8.com/?size=100&id=119&format=png&color=000000" 
+                                alt="tag" class="theme-icon tool-icon">
+                            <input type="text" id="tags" placeholder="添加标签, 逗号隔开">
+                        </div>
+                    </div>
+
+                    <button onclick="postTweet()" class="post-btn">发布</button>
+                </div>
+                </div>
+        </div>
+
+        <div class="main-feed" id="tweetList">
+            </div>
+    </div>
+
+    <script>
+        // 脚本：API 常量、页面状态、初始化、事件处理、API 交互、DOM 渲染
+        const API_BASE = 'http://localhost:5000/api';
+        let currentPostFile = null;
+
+
+        // =========================
+        // 主题相关逻辑
+        // =========================
+
+        // 初始化主题（从 localStorage 恢复）
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            // 如果之前存的是 light，就给 body 加上类名
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+            }
+        }
+
+        function toggleTheme() {
+            // 切换类名：CSS 会根据这个类名的有无，自动触发图标的渐变动画
+            document.body.classList.toggle('light-mode');
+
+            // 保存当前用户的偏好
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        }
+
+
+        // =========================
+        // 搜索相关
+        // =========================
+
+        // 回车触发搜索
+        function handleSearchKey(event) {
+            if (event.key === 'Enter') {
+                performSearch();
+            }
+        }
+
+        // 执行搜索：获取输入框的值并调用 fetchTweets 进行搜索
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            fetchTweets(query);
+        }
+
+
+        // =========================
+        // 页面初始化
+        // =========================
+
+        // 页面加载时，初始化主题、获取用户资料和推文列表
+        window.onload = function() {
+            initTheme();
+            fetchProfile();
+            fetchTweets();
+        };
+
+
+        // =========================
+        // API：用户资料
+        // =========================
+
+        // 获取用户资料并更新页面显示，同时填充编辑 Modal 的初始值
+        async function fetchProfile() {
+            try {
+                const res = await fetch(`${API_BASE}/profile`);
+                const data = await res.json();
+
+                // 更新展示区
+                document.getElementById('displayNickname').innerText = data.nickname;
+                document.getElementById('displayBio').innerText = data.bio || "暂无介绍";
+                document.getElementById('displayAvatar').src = data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.nickname)}&background=random`;
+
+                // 填充编辑 Modal 的初始值
+                document.getElementById('editNickname').value = data.nickname;
+                document.getElementById('editBio').value = data.bio || "";
+            } catch (e) {
+                // 捕获并记录错误（不抛出)
+                console.error(e);
+            }
+        }
+
+
+        // =========================
+        // API：推文列表
+        // =========================
+
+        // 获取推文列表（可选搜索），并调用渲染函数更新页面
+        async function fetchTweets(query = '') {
+            const url = query ? `${API_BASE}/tweets?search=${encodeURIComponent(query)}` : `${API_BASE}/tweets`;
+            const res = await fetch(url);
+            const data = await res.json();
+            renderTweets(data);
+        }
+
+        // 将推文数据渲染到页面
+        function renderTweets(tweets) {
+            const list = document.getElementById('tweetList');
+            list.innerHTML = '';
+
+            tweets.forEach(tweet => {
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                const avatarSrc = tweet.userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(tweet.user)}&background=random`;
+
+                let mediaHtml = '';
+                let hasMedia = false;
+
+                if (tweet.mediaUrl) {
+                    hasMedia = true;
+
+                    if (tweet.mediaType === 'video') {
+                        mediaHtml = `<video src="${tweet.mediaUrl}" controls></video>`;
+                    } else {
+                        mediaHtml = `<img src="${tweet.mediaUrl}" loading="lazy">`;
+                    }
+                }
+
+                const tagsHtml = (tweet.tags || []).map(t => `<span style="color:var(--primary-color); margin-right:5px;">#${t}</span>`).join('');
+
+                // 使用模板字符串分行提高可读性
+                card.innerHTML = `
+                    <div class="tweet-header">
+                        <img src="${avatarSrc}" class="avatar-small">
+                        <div>
+                            <span class="username">${escapeHtml(tweet.user)}</span>
+                            <span class="timestamp">· ${tweet.timestamp}</span>
+                        </div>
+                    </div>
+
+                    <div class="tweet-body">
+                        <div class="tweet-content-left">
+                            <div class="tweet-text">${escapeHtml(tweet.content)}</div>
+                            <div>${tagsHtml}</div>
+                        </div>
+
+                        <div class="tweet-media-right ${hasMedia ? 'active' : ''}">
+                            ${mediaHtml}
+                        </div>
+                    </div>
+                `;
+
+                list.appendChild(card);
+            });
+        }
+
+
+        // =========================
+        // 发布推文
+        // =========================
+
+        // 发布推文（包含可选文件）
+        async function postTweet() {
+            const content = document.getElementById('content').value.trim();
+            const tags = document.getElementById('tags').value.trim();
+
+            if (!content && !currentPostFile) return alert("内容不能为空");
+
+            const formData = new FormData();
+            formData.append('content', content);
+            formData.append('tags', tags);
+            if (currentPostFile) formData.append('file', currentPostFile);
+
+            await fetch(`${API_BASE}/tweets`, { method: 'POST', body: formData });
+
+            // 清理并刷新
+            document.getElementById('content').value = '';
+            document.getElementById('tags').value = '';
+            clearPreview();
+            fetchTweets();
+        }
+
+
+        // =========================
+        // 保存资料
+        // =========================
+
+        // 将编辑 Modal 的资料提交到后端并刷新显示
+        async function saveProfile() {
+            const nickname = document.getElementById('editNickname').value;
+            const bio = document.getElementById('editBio').value;
+            const fileInput = document.getElementById('editAvatarInput');
+
+            const formData = new FormData();
+            formData.append('nickname', nickname);
+            formData.append('bio', bio);
+            if (fileInput.files[0]) formData.append('avatar', fileInput.files[0]);
+
+            await fetch(`${API_BASE}/profile`, { method: 'POST', body: formData });
+
+            closeModal();
+            fetchProfile();
+            fetchTweets();
+        }
+
+
+        // =========================
+        // 预览与文件处理
+        // =========================
+
+        // 处理用户选择的文件（图片或视频）并创建本地预览
+        function handleFileSelect() {
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) return;
+
+            currentPostFile = file;
+            document.getElementById('previewContainer').style.display = 'block';
+
+            const reader = new FileReader();
+
+            reader.onload = e => {
+                const box = document.getElementById('previewMedia');
+
+                // 根据文件类型显示 video 或 img
+                if (file.type.startsWith('video')) {
+                    box.innerHTML = `<video src="${e.target.result}" style="width:100%; max-height:150px; border-radius:8px;"></video>`;
+                } else {
+                    box.innerHTML = `<img src="${e.target.result}" style="width:100%; max-height:150px; border-radius:8px;">`;
+                }
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // 处理修改头像时的实时预览
+        function handleAvatarPreview(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('editAvatarPreview').src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 清除当前预览并重置文件引用
+        function clearPreview() {
+            document.getElementById('fileInput').value = "";
+            document.getElementById('previewContainer').style.display = 'none';
+            currentPostFile = null;
+        }
+
+
+        // =========================
+        // Modal 操作 / 安全工具
+        // =========================
+
+        // 打开编辑 Modal，并同步当前资料到预览区域
+        function openModal() {
+            // 打开时同步当前的头像到预览区域，避免显示空白或旧图
+            const currentAvatarSrc = document.getElementById('displayAvatar').src;
+            document.getElementById('editAvatarPreview').src = currentAvatarSrc;
+            // 清空文件选择，以免上次选择的文件残留
+            document.getElementById('editAvatarInput').value = "";
+            
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        // 关闭 Modal
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // HTML 转义，防止 XSS 攻击
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+
+</html>

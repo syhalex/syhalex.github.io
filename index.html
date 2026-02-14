@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mini Space (Pure Black v2 - Optimized)</title>
+    <title>Cyber?space v260214</title>
 
     <style>
         /* =============== 黑色(默认) =============== */
@@ -41,6 +41,15 @@
         /* 当切换到白色模式时，恢复图标原始颜色 */
         body.light-mode .theme-icon {
             filter: invert(0) brightness(1);
+        }
+
+        /* 全局过渡动画：确保边框和颜色同步切换 */
+        * {
+            transition: background-color var(--transition-speed), 
+                        color var(--transition-speed), 
+                        border-color var(--transition-speed), 
+                        box-shadow var(--transition-speed);
+            box-sizing: border-box;
         }
 
         /* =============== 全局样式 =============== */
@@ -206,7 +215,7 @@
             color: var(--primary-color);
         }
 
-        /* ================= === 新增：发布框工具栏样式 === ================= */
+        /* ================= 发布框工具栏样式 ================= */
         /* 为了方便维护，将发布框底部的样式统一在这里管理 */
         
         textarea {
@@ -365,7 +374,6 @@
             height: 100%;
             object-fit: cover;
         }
-
 
         /* ================= Modal & Preview ================= */
         .modal-overlay {
@@ -587,17 +595,23 @@
 
                     <button onclick="postTweet()" class="post-btn">发布</button>
                 </div>
-                </div>
+            </div>
         </div>
 
-        <div class="main-feed" id="tweetList">
-            </div>
+        <div class="main-feed" id="tweetList"></div>
     </div>
-
+        
     <script>
         // 脚本：API 常量、页面状态、初始化、事件处理、API 交互、DOM 渲染
         const API_BASE = 'http://localhost:5000/api';
         let currentPostFile = null;
+
+        const ICONS = {
+            like: 'https://img.icons8.com/?size=100&id=119&format=png&color=000000',
+            confused: 'https://img.icons8.com/?size=100&id=110933&format=png&color=000000',
+            god: 'https://img.icons8.com/?size=100&id=110934&format=png&color=000000',
+            comment: 'https://img.icons8.com/?size=100&id=110932&format=png&color=000000'
+        };
 
 
         // =========================

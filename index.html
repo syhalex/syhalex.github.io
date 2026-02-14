@@ -272,7 +272,7 @@
             border-bottom: 1px solid transparent;
             color: var(--text-color);
             outline: none;
-            width: 120px;
+            width: 130px;
             font-size: 14px;
             transition: border-color 0.2s;
         }
@@ -308,6 +308,7 @@
         .profile-name {
             font-weight: 800;
             font-size: 1.2rem;
+            margin-bottom: 12px;
         }
         .profile-bio {
             color: var(--text-secondary);
@@ -334,6 +335,7 @@
             font-weight: bold;
             margin-right: 5px;
             color: var(--text-color);
+            font-size: 1.1rem;
         }
         .timestamp {
             font-size: 0.9rem;
@@ -374,6 +376,83 @@
             height: 100%;
             object-fit: cover;
         }
+
+        /*  reaction栏 */
+        .tweet-footer {
+            display: flex;
+            justify-content: flex-start;
+            gap: 120px;
+            margin-top: 12px;
+            max-width: 100%;
+            padding-left: 2px;
+        }
+
+        .action-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 60px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 15px;
+            background: transparent !important;
+            border: none;
+            padding: 6px 0;
+            transition: color 0.2s ease;
+            position: relative;
+        }
+
+        .action-item:hover {
+            color: var(--primary-color);
+        }
+
+        /* Like: 红色 */
+        .action-item.type-like:hover, .action-item.active-like { color: #f91880; }
+        .action-item.type-like:hover .action-icon, .action-item.active-like .action-icon {
+            filter: grayscale(0) opacity(1) !important;
+        }
+
+        /* Confused: 橙色 */
+        .action-item.type-confused:hover, .action-item.active-confused { color: #fd7e14; }
+        .action-item.type-confused:hover .action-icon, .action-item.active-confused .action-icon {
+            filter: grayscale(0) opacity(1) !important;
+        }
+
+        /* OMG: 绿色 */
+        .action-item.type-omg:hover, .action-item.active-omg { color: #82c91e; }
+        .action-item.type-omg:hover .action-icon, .action-item.active-omg .action-icon {
+            filter: grayscale(0) opacity(1) !important;
+        }
+
+        .action-icon {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.2s;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s ease;
+            filter: grayscale(100%); /* 默认让图标变成灰色调，适应黑白主题 */
+            opacity: 0.7;
+        }
+
+        /* 激活或 hover 时的图标效果 */
+        .action-item:hover .action-icon,
+        .action-item[class*="active-"] .action-icon {
+            filter: grayscale(0); /* 恢复彩色 */
+            opacity: 1;
+            transform: scale(1.15); /* 微微放大 */
+        }
+
+        /* 只有深色模式下，非激活状态的图标需要反色才能看清(如果是黑色图标) */
+        body:not(.light-mode) .action-icon {
+            filter: invert(1) grayscale(100%) brightness(0.8);
+            opacity: 0.8;
+            transition: filter 0.3s ease, opacity 0.3s ease;
+        }
+        body:not(.light-mode) .action-item:hover .action-icon,
+        body:not(.light-mode) .action-item[class*="active-"] .action-icon {
+            filter: invert(0) grayscale(0) brightness(1);
+            opacity: 1;
+        }
+
 
         /* ================= Modal & Preview ================= */
         .modal-overlay {
@@ -609,9 +688,10 @@
         const ICONS = {
             like: 'https://img.icons8.com/?size=100&id=86721&format=png&color=FA5252',
             like_filled: 'https://img.icons8.com/?size=100&id=86747&format=png&color=FA5252',
-            confused: 'https://img.icons8.com/?size=100&id=nCCnwaJeqDHI&format=png&color=FD7E14',
-            confused_filled: 'https://img.icons8.com/?size=100&id=RCU6LqephxE2&format=png&color=FD7E14',
+            confused: 'https://img.icons8.com/?size=100&id=85965&format=png&color=FAB005',
+            confused_filled: 'https://img.icons8.com/?size=100&id=98973&format=png&color=FAB005',
             omg: 'https://img.icons8.com/?size=100&id=UpwQYGKI5ULX&format=png&color=000000',
+            omg_filled: 'https://img.icons8.com/?size=100&id=UpwQYGKI5ULX&format=png&color=82C91E',
             comment: 'https://img.icons8.com/?size=100&id=q8JjcqIiTjN6&format=png&color=228BE6'
         };
 
@@ -706,6 +786,18 @@
             renderTweets(data);
         }
 
+        // 记录该设备是否有过reaction
+        function hasUserReacted(tweetId, type) {
+            const key = `reacted_${tweetId}_${type}`;
+            return localStorage.getItem(key) === 'true';
+        }
+
+        // 记录本地互动状态
+        function saveUserReaction(tweetId, type) {
+            const key = `reacted_${tweetId}_${type}`;
+            localStorage.setItem(key, 'true');
+        }
+
         // 将推文数据渲染到页面
         function renderTweets(tweets) {
             const list = document.getElementById('tweetList');
@@ -730,29 +822,68 @@
                     }
                 }
 
-                const tagsHtml = (tweet.tags || []).map(t => `<span style="color:var(--primary-color); margin-right:5px;">#${t}</span>`).join('');
+                const tagsHtml = (tweet.tags || []).map(t => `<span style="color:var(--primary-color); margin-right:20px;">#${t}</span>`).join('');
+
+                // reaction 状态与配置
+                const commentCount = tweet.comments ? tweet.comments.length : 0;
+                const reactions = tweet.reactions || { like: 0, confused: 0, omg: 0 };
+                
+                const reactionConfig = [
+                    { type: 'like', icon: 'like', iconFilled: 'like_filled', count: reactions.like, colorClass: 'type-like' },
+                    { type: 'confused', icon: 'confused', iconFilled: 'confused_filled', count: reactions.confused, colorClass: 'type-confused' },
+                    { type: 'omg', icon: 'omg', iconFilled: 'omg_filled', count: reactions.omg, colorClass: 'type-omg' }
+                ];
+
+                // 生成 Reaction HTML
+                let actionsHtml = `
+                    <button class="action-item" onclick="alert('评论详情功能开发中...')">
+                        <img src="${ICONS.comment}" class="action-icon">
+                        <span>${commentCount > 0 ? commentCount : ''}</span>
+                    </button>
+                `;
+
+                reactionConfig.forEach(r => {
+                    const isActive = hasUserReacted(tweet.id, r.type);
+                    const currentIcon = isActive ? ICONS[r.iconFilled] : ICONS[r.icon];
+                    const activeClass = isActive ? `active-${r.type}` : '';
+                    
+                    // 注意：这里 onclick 绑定了 handleReaction
+                    actionsHtml += `
+                        <button class="action-item ${r.colorClass} ${activeClass}" 
+                            onclick="handleReaction(event, '${tweet.id}', '${r.type}')" 
+                            id="btn-${tweet.id}-${r.type}">
+                            <img src="${currentIcon}" class="action-icon" id="img-${tweet.id}-${r.type}">
+                            <span id="count-${tweet.id}-${r.type}">${r.count > 0 ? r.count : ''}</span>
+                        </button>
+                    `;
+                });
 
                 // 使用模板字符串分行提高可读性
                 card.innerHTML = `
-                    <div class="tweet-header">
-                        <img src="${avatarSrc}" class="avatar-small">
-                        <div>
-                            <span class="username">${escapeHtml(tweet.user)}</span>
-                            <span class="timestamp">· ${tweet.timestamp}</span>
-                        </div>
+                <div class="tweet-header">
+                    <img src="${avatarSrc}" class="avatar-small">
+                    <div>
+                        <span class="username">${escapeHtml(tweet.user)}</span>
+                        <span class="timestamp">· ${tweet.timestamp}</span>
                     </div>
+                </div>
 
-                    <div class="tweet-body">
+                <div class="tweet-body" style="display:block;"> 
+                    <div style="display:flex; justify-content:space-between; gap:15px;">
                         <div class="tweet-content-left">
                             <div class="tweet-text">${escapeHtml(tweet.content)}</div>
                             <div>${tagsHtml}</div>
                         </div>
-
                         <div class="tweet-media-right ${hasMedia ? 'active' : ''}">
                             ${mediaHtml}
                         </div>
                     </div>
-                `;
+
+                    <div class="tweet-footer">
+                        ${actionsHtml}
+                    </div>
+                </div>
+            `;
 
                 list.appendChild(card);
             });
@@ -853,6 +984,70 @@
             document.getElementById('fileInput').value = "";
             document.getElementById('previewContainer').style.display = 'none';
             currentPostFile = null;
+        }
+
+        // 处理点击互动 (Like, Confused, OMG)
+        async function handleReaction(event, tweetId, type) {
+            event.stopPropagation(); // 阻止事件冒泡 (防止未来点击卡片进入详情页时触发)
+
+            const isReacted = hasUserReacted(tweetId, type);
+            const action = isReacted ? 'remove' : 'add';
+            
+            // 乐观 UI 更新 (不等服务器返回直接变数字)
+            const countSpan = document.getElementById(`count-${tweetId}-${type}`);
+            const imgEl = document.getElementById(`img-${tweetId}-${type}`);
+            const btnEl = document.getElementById(`btn-${tweetId}-${type}`);
+
+            // 获取当前数字（如果是空字符串则视为 0）
+            let currentCount = parseInt(countSpan.innerText) || 0;
+
+            if (action === 'add') {
+                // 【增加逻辑】
+                const newCount = currentCount + 1;
+                // 增加后数字肯定大于 0，直接显示
+                countSpan.innerText = newCount; 
+                
+                btnEl.classList.add(`active-${type}`);
+                const filledKey = type === 'like' ? 'like_filled' : (type === 'omg' ? 'omg_filled' : 'confused_filled');
+                imgEl.src = ICONS[filledKey];
+                
+                saveUserReaction(tweetId, type);
+
+                // 动画效果
+                imgEl.style.transform = 'scale(1.2)';
+                setTimeout(() => imgEl.style.transform = 'scale(1)', 200);
+
+            } else {
+                // 【取消逻辑】
+                const newCount = currentCount - 1;
+                // 关键修正：判断【新数字】是否大于 0
+                countSpan.innerText = newCount > 0 ? newCount : ''; 
+
+                btnEl.classList.remove(`active-${type}`);
+                imgEl.src = ICONS[type];
+                
+                localStorage.removeItem(`reacted_${tweetId}_${type}`);
+
+                // 动画效果
+                imgEl.style.transform = 'scale(0.8)';
+                setTimeout(() => imgEl.style.transform = 'scale(1)', 200);
+            }
+
+            // 发送请求给后端
+            try {
+                const res = await fetch(`${API_BASE}/tweets/${tweetId}/react`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: type, action: action }) // 告诉后端动作
+                });
+                
+                if (!res.ok) {
+                    console.error("Reaction failed");
+                    // 这里可以添加回滚逻辑(略)
+                }
+            } catch (e) {
+                console.error(e);
+            }
         }
 
 

@@ -70,11 +70,10 @@ app.post('/api/tweets', upload.single('file'), (req, res) => {
         mediaType: fileType,
         tags: tags ? tags.split(/[,，]/).map(t => t.trim()).filter(t => t) : [],
         timestamp: new Date().toLocaleString(),
-        // === 新增字段 ===
         reactions: {
             like: 0,
             confused: 0,
-            god: 0
+            omg: 0
         },
         comments: [] 
     };
@@ -98,27 +97,34 @@ app.get('/api/tweets', (req, res) => {
     res.json(filteredTweets);
 });
 
-// === 新增接口: 获取单条推文详情 ===
+// === 接口: 获取单条推文详情 ===
 app.get('/api/tweets/:id', (req, res) => {
     const tweet = tweets.find(t => t.id === req.params.id);
     if (tweet) res.json(tweet);
     else res.status(404).json({ error: "Not found" });
 });
 
-// === 新增接口: 处理互动 (点赞/问号/神) ===
+// === 接口: 处理互动 ===
 app.post('/api/tweets/:id/react', (req, res) => {
-    const { type } = req.body; // type: 'like', 'confused', 'god'
+    const { type, action } = req.body;
     const tweet = tweets.find(t => t.id === req.params.id);
     
     if (tweet && tweet.reactions[type] !== undefined) {
-        tweet.reactions[type]++; // 简单增加计数，不验证用户是否重复点击
+        if (action === 'add') {
+            tweet.reactions[type]++;
+        } else if (action === 'remove') {
+            // 防止减成负数
+            if (tweet.reactions[type] > 0) {
+                tweet.reactions[type]--;
+            }
+        }
         res.json(tweet);
     } else {
         res.status(404).json({ error: "Error" });
     }
 });
 
-// === 新增接口: 发布评论 ===
+// === 接口: 发布评论 ===
 app.post('/api/tweets/:id/comment', (req, res) => {
     const { text } = req.body;
     const tweet = tweets.find(t => t.id === req.params.id);

@@ -563,6 +563,87 @@
             z-index: 5;
         }
 
+        /* ================= 详情页与全屏组件 (新增) ================= */
+        /* 1. 全屏查看器 */
+        #mediaLightbox {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            z-index: 2000; display: none; justify-content: center; align-items: center;
+            cursor: zoom-out;
+        }
+        #lightboxContent img, #lightboxContent video { 
+            max-width: 95%; max-height: 90vh; border-radius: 4px; 
+        }
+
+        /* 2. 详情页头部 */
+        .detail-header {
+            display: flex; align-items: center; gap: 20px;
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky; top: 0;
+            background: rgba(var(--bg-color), 0.85); /* 需配合 backdrop-filter */
+            background: var(--bg-color); /* 降级方案 */
+            z-index: 10;
+        }
+
+        /* 3. 返回按钮 */
+        .back-btn-circle {
+            width: 36px; 
+            height: 36px; 
+            border-radius: 50%;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            border: none; 
+            background: transparent; 
+            color: var(--text-color);
+            cursor: pointer; 
+            transition: 0.2s; 
+            padding: 0;
+        }
+        .back-btn-circle:hover { background: rgba(29, 155, 240, 0.1); }
+
+        /* 4. 详情页大图 */
+        .detail-media-large {
+            width: 100%; 
+            margin-top: 15px; 
+            border-radius: 16px;
+            border: 1px solid var(--border-color); 
+            overflow: hidden;
+            cursor: zoom-in; 
+            max-height: 600px;
+        }
+        .detail-media-large img, .detail-media-large video {
+            width: 100%; 
+            height: 100%; 
+            object-fit: contain; 
+            display: block; 
+            background: #000;
+        }
+
+        /* 5. 评论区样式 */
+        .comment-box-area {
+            padding: 16px; 
+            border-bottom: 1px solid var(--border-color);
+            display: flex; 
+            gap: 12px;
+        }
+        .comment-input {
+            flex: 1; 
+            background: transparent; 
+            border: none;
+            color: var(--text-color); 
+            font-size: 1.1rem; 
+            outline: none;
+        }
+        .comment-item {
+            padding: 16px; 
+            border-bottom: 1px solid var(--border-color);
+            display: flex; 
+            gap: 12px; 
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
 
         /* ================= 响应式 ================= */
         @media (max-width: 850px) { 
@@ -618,6 +699,10 @@
                 <button onclick="closeModal()" class="btn-outline" style="flex:1">取消</button>
             </div>
         </div>
+    </div>
+
+    <div id="mediaLightbox" onclick="this.style.display='none'">
+        <div id="lightboxContent"></div>
     </div>
 
     <div class="wrapper">
@@ -677,7 +762,25 @@
             </div>
         </div>
 
-        <div class="main-feed" id="tweetList"></div>
+        <div class="main-feed">
+            <div id="tweetListView">
+                <div id="tweetList"></div> 
+            </div>
+
+            <div id="tweetDetailView" style="display: none;">
+                <div class="detail-header">
+                    <button class="back-btn-circle" onclick="goBackFromDetail()">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                        </svg>
+                    </button>
+                    <span style="font-weight: 800; font-size: 1.2rem;">详情</span>
+                </div>
+                
+                <div id="detailContent"></div>
+            </div>
+        </div>
+
     </div>
         
     <script>
@@ -803,9 +906,23 @@
             const list = document.getElementById('tweetList');
             list.innerHTML = '';
 
+            // 如果没有推文显示提示
+            if (!tweets.length) {
+                list.innerHTML = `<div style="padding:40px; text-align:center; color:var(--text-secondary)">暂无内容</div>`;
+                return;
+            }
+
             tweets.forEach(tweet => {
                 const card = document.createElement('div');
                 card.className = 'card';
+                card.style.cursor = 'pointer';
+
+                // 点击卡片跳转详情
+                card.onclick = (e) => {
+                    // 如果点击的是按钮、图片或链接，不跳转
+                    if (e.target.closest('button') || e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') return;
+                    openDetail(tweet.id);
+                };
 
                 const avatarSrc = tweet.userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(tweet.user)}&background=random`;
 
@@ -836,7 +953,7 @@
 
                 // 生成 Reaction HTML
                 let actionsHtml = `
-                    <button class="action-item" onclick="alert('评论详情功能开发中...')">
+                    <button class="action-item" onclick="event.stopPropagation(); openDetail('${tweet.id}')">
                         <img src="${ICONS.comment}" class="action-icon">
                         <span>${commentCount > 0 ? commentCount : ''}</span>
                     </button>
@@ -847,7 +964,7 @@
                     const currentIcon = isActive ? ICONS[r.iconFilled] : ICONS[r.icon];
                     const activeClass = isActive ? `active-${r.type}` : '';
                     
-                    // 注意：这里 onclick 绑定了 handleReaction
+                    // 这里 onclick 绑定了 handleReaction
                     actionsHtml += `
                         <button class="action-item ${r.colorClass} ${activeClass}" 
                             onclick="handleReaction(event, '${tweet.id}', '${r.type}')" 
@@ -992,45 +1109,74 @@
 
             const isReacted = hasUserReacted(tweetId, type);
             const action = isReacted ? 'remove' : 'add';
-            
-            // 乐观 UI 更新 (不等服务器返回直接变数字)
-            const countSpan = document.getElementById(`count-${tweetId}-${type}`);
-            const imgEl = document.getElementById(`img-${tweetId}-${type}`);
-            const btnEl = document.getElementById(`btn-${tweetId}-${type}`);
 
-            // 获取当前数字（如果是空字符串则视为 0）
-            let currentCount = parseInt(countSpan.innerText) || 0;
+            // 定义需要更新的前缀列表：空字符串代表列表页 ID，'detail-' 代表详情页 ID, 使两个界面的数字同步
+            const prefixes = ['', 'detail-'];
 
+            // 1. 先计算新数值 (避免在循环中重复计算导致数字错乱)
+            // 尝试获取任意一个存在的计数器元素作为基准
+            const baseCountSpan = document.getElementById(`detail-count-${tweetId}-${type}`) || document.getElementById(`count-${tweetId}-${type}`);
+            let currentCount = 0;
+            if (baseCountSpan) {
+                // 获取当前数字（如果是空字符串则视为 0）
+                currentCount = parseInt(baseCountSpan.innerText) || 0;
+            }
+
+            // 计算目标值
+            let newCount = currentCount;
             if (action === 'add') {
-                // 【增加逻辑】
-                const newCount = currentCount + 1;
-                // 增加后数字肯定大于 0，直接显示
-                countSpan.innerText = newCount; 
-                
-                btnEl.classList.add(`active-${type}`);
-                const filledKey = type === 'like' ? 'like_filled' : (type === 'omg' ? 'omg_filled' : 'confused_filled');
-                imgEl.src = ICONS[filledKey];
-                
-                saveUserReaction(tweetId, type);
-
-                // 动画效果
-                imgEl.style.transform = 'scale(1.2)';
-                setTimeout(() => imgEl.style.transform = 'scale(1)', 200);
-
+                if (!isReacted) newCount++; // 防止快速点击导致逻辑错误
             } else {
-                // 【取消逻辑】
-                const newCount = currentCount - 1;
-                // 关键修正：判断【新数字】是否大于 0
-                countSpan.innerText = newCount > 0 ? newCount : ''; 
+                if (isReacted) newCount--;
+            }
 
-                btnEl.classList.remove(`active-${type}`);
-                imgEl.src = ICONS[type];
-                
+            // 2. 遍历所有可能的界面位置 (列表页 + 详情页) 进行 乐观 UI 更新
+            prefixes.forEach(prefix => {
+                // 拼接对应的 ID
+                const countId = `${prefix}count-${tweetId}-${type}`;
+                const imgId = `${prefix}img-${tweetId}-${type}`;
+                const btnId = `${prefix}btn-${tweetId}-${type}`;
+
+                const countSpan = document.getElementById(countId);
+                const imgEl = document.getElementById(imgId);
+                const btnEl = document.getElementById(btnId);
+
+                // 只有当元素存在于当前页面时才更新 (防止报错)
+                if (countSpan && imgEl && btnEl) {
+                    
+                    if (action === 'add') {
+                        // 【增加逻辑】
+                        // 增加后数字肯定大于 0，直接显示
+                        countSpan.innerText = newCount; 
+                        
+                        btnEl.classList.add(`active-${type}`);
+                        const filledKey = type === 'like' ? 'like_filled' : (type === 'omg' ? 'omg_filled' : 'confused_filled');
+                        imgEl.src = ICONS[filledKey];
+                        
+                        // 动画效果
+                        imgEl.style.transform = 'scale(1.2)';
+                        setTimeout(() => imgEl.style.transform = 'scale(1)', 200);
+
+                    } else {
+                        // 【取消逻辑】
+                        // 关键修正：判断【新数字】是否大于 0
+                        countSpan.innerText = newCount > 0 ? newCount : ''; 
+
+                        btnEl.classList.remove(`active-${type}`);
+                        imgEl.src = ICONS[type];
+                        
+                        // 动画效果
+                        imgEl.style.transform = 'scale(0.8)';
+                        setTimeout(() => imgEl.style.transform = 'scale(1)', 200);
+                    }
+                }
+            });
+
+            // 3. 更新本地存储状态 (只需执行一次)
+            if (action === 'add') {
+                saveUserReaction(tweetId, type);
+            } else {
                 localStorage.removeItem(`reacted_${tweetId}_${type}`);
-
-                // 动画效果
-                imgEl.style.transform = 'scale(0.8)';
-                setTimeout(() => imgEl.style.transform = 'scale(1)', 200);
             }
 
             // 发送请求给后端
@@ -1043,11 +1189,173 @@
                 
                 if (!res.ok) {
                     console.error("Reaction failed");
-                    // 这里可以添加回滚逻辑(略)
                 }
             } catch (e) {
                 console.error(e);
             }
+        }
+
+        // ===================
+        // 详情页逻辑 
+        // ===================
+        
+        // 打开详情页
+        async function openDetail(id) {
+            // 1. 切换视图
+            document.getElementById('tweetListView').style.display = 'none';
+            document.getElementById('tweetDetailView').style.display = 'block';
+            window.scrollTo(0, 0);
+
+            const container = document.getElementById('detailContent');
+            container.innerHTML = '<div style="padding:20px; text-align:center;">加载中...</div>';
+
+            try {
+                // 2. 获取数据
+                const res = await fetch(`${API_BASE}/tweets/${id}`);
+                if (!res.ok) throw new Error("加载失败");
+                const tweet = await res.json();
+
+                // 3. 构建标签 HTML
+                const tagsHtml = (tweet.tags || []).map(t => `<span style="color:var(--primary-color); margin-right:15px; font-size:1.1rem; cursor:pointer;">#${t}</span>`).join('');
+
+                // 4. 构建大图/视频 HTML
+                let mediaHtml = '';
+                if (tweet.mediaUrl) {
+                    mediaHtml = `
+                        <div class="detail-media-large" onclick="showFullMedia('${tweet.mediaUrl}', '${tweet.mediaType}')">
+                            ${tweet.mediaType === 'video' 
+                                ? `<video src="${tweet.mediaUrl}" controls autoplay muted></video>` 
+                                : `<img src="${tweet.mediaUrl}">`}
+                        </div>`;
+                }
+
+                // 5. 构建评论列表 HTML
+                const commentsHtml = (tweet.comments || []).map(c => `
+                    <div class="comment-item">
+                        <img src="${c.avatar || 'https://ui-avatars.com/api/?background=random'}" class="avatar-small">
+                        <div style="flex:1">
+                            <div style="display:flex; justify-content:space-between;">
+                                <span style="font-weight:bold">${escapeHtml(c.user)}</span>
+                                <span style="color:var(--text-secondary); font-size:0.85rem">${c.timestamp}</span>
+                            </div>
+                            <div style="margin-top:4px; line-height:1.4">${escapeHtml(c.text)}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // 6. 渲染详情页 DOM
+                // --- 动态生成 Reaction 按钮 HTML (逻辑与列表页一致) ---
+                const reactions = tweet.reactions || { like: 0, confused: 0, omg: 0 };
+                const reactionConfig = [
+                    { type: 'like', icon: 'like', iconFilled: 'like_filled', count: reactions.like, colorClass: 'type-like' },
+                    { type: 'confused', icon: 'confused', iconFilled: 'confused_filled', count: reactions.confused, colorClass: 'type-confused' },
+                    { type: 'omg', icon: 'omg', iconFilled: 'omg_filled', count: reactions.omg, colorClass: 'type-omg' }
+                ];
+
+                let detailActionsHtml = '';
+                reactionConfig.forEach(r => {
+                    const isActive = hasUserReacted(tweet.id, r.type);
+                    const currentIcon = isActive ? ICONS[r.iconFilled] : ICONS[r.icon];
+                    const activeClass = isActive ? `active-${r.type}` : '';
+                    
+                    // ID 增加了 'detail-' 前缀
+                    detailActionsHtml += `
+                        <button class="action-item ${r.colorClass} ${activeClass}" 
+                            onclick="handleReaction(event, '${tweet.id}', '${r.type}')" 
+                            id="detail-btn-${tweet.id}-${r.type}"
+                            style="font-size: 0.9rem; padding: 5px 8px;"> 
+                            <img src="${currentIcon}" class="action-icon" id="detail-img-${tweet.id}-${r.type}" style="width:20px; height:20px;">
+                            <span id="detail-count-${tweet.id}-${r.type}" style="margin-left:4px; font-weight:bold;">${r.count > 0 ? r.count : ''}</span>
+                        </button>
+                    `;
+                });
+
+                container.innerHTML = `
+                    <div style="padding: 0 16px;">
+                        <div class="tweet-header" style="padding-top:15px;">
+                            <img src="${tweet.userAvatar || `https://ui-avatars.com/api/?name=${tweet.user}`}" class="avatar-small" style="width:50px; height:50px;">
+                            <div style="display:flex; flex-direction:column;">
+                                <span class="username" style="font-size:1.1rem">${escapeHtml(tweet.user)}</span>
+                                <span class="timestamp">${tweet.timestamp}</span>
+                            </div>
+                        </div>
+
+                        <div style="font-size:1.4rem; margin:15px 0; line-height:1.4; white-space:pre-wrap;">${escapeHtml(tweet.content)}</div>
+
+                        <div style="margin: 10px 0 15px 0;">${tagsHtml}</div>
+                        
+                        ${mediaHtml}
+
+                        <div style="padding:15px 0; border-bottom:1px solid var(--border-color); color:var(--text-secondary); font-size:0.9rem;">
+                            <span>${tweet.timestamp}</span>
+                        </div>
+
+                        <div class="tweet-footer" style="padding:12px 0; justify-content: flex-start; gap: 120px; border-bottom:1px solid var(--border-color); margin:0;">
+                            ${detailActionsHtml}
+                        </div>
+                    </div>
+
+                    <div class="comment-box-area">
+                        <img src="${document.getElementById('displayAvatar').src}" class="avatar-small">
+                        <input type="text" id="commentInput-${tweet.id}" class="comment-input" placeholder="发布你的评论..." onkeydown="if(event.key==='Enter') postComment('${tweet.id}')">
+                        <button onclick="postComment('${tweet.id}')" class="post-btn" style="padding:6px 16px;">评论</button>
+                    </div>
+
+                    <div style="padding-bottom: 40px;">
+                        ${commentsHtml}
+                    </div>
+                `;
+
+            } catch (e) {
+                console.error(e);
+                container.innerHTML = '<div style="padding:20px; color:red">加载失败</div>';
+            }
+        }
+
+        // 返回列表
+        function goBackFromDetail() {
+            document.getElementById('tweetDetailView').style.display = 'none';
+            document.getElementById('tweetListView').style.display = 'block';
+            // 重新获取列表以更新评论数等状态
+            fetchTweets(); 
+        }
+
+        // 发送评论
+        async function postComment(id) {
+            const input = document.getElementById(`commentInput-${id}`);
+            const text = input.value.trim();
+            if (!text) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/tweets/${id}/comment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                // 评论成功后，重新加载详情页
+                if (res.ok) {
+                    openDetail(id);
+                } else {
+                    const errorData = await res.json();
+                    alert("评论失败: " + (errorData.error || "未知原因"));
+                }
+            } catch (e) {
+                console.error("Comment Error:", e);
+                alert("操作失败，请检查网络连接");
+            }
+        }
+
+        // 全屏查看图片/视频
+        function showFullMedia(url, type) {
+            const lb = document.getElementById('mediaLightbox');
+            const content = document.getElementById('lightboxContent');
+            
+            if (type === 'video') {
+                content.innerHTML = `<video src="${url}" controls autoplay style="max-width:90vw; max-height:90vh"></video>`;
+            } else {
+                content.innerHTML = `<img src="${url}">`;
+            }
+            lb.style.display = 'flex';
         }
 
 

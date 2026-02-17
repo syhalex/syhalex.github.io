@@ -137,7 +137,7 @@ app.post('/api/tweets/:id/comment', (req, res) => {
             text: text,
             timestamp: new Date().toLocaleString()
         };
-        tweet.comments.push(newComment);
+        tweet.comments.unshift(newComment);
         res.json(tweet);
     } else {
         res.status(404).json({ error: "Not found" });

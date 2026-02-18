@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cyber?space v260214</title>
+    <title>Cyber?space v20260218</title>
 
     <style>
         /* =============== 黑色(默认) =============== */
@@ -73,17 +73,25 @@
         }
 
         .sidebar {
-            width: 280px;
-            flex-shrink: 0;
-            position: sticky;
+            width: 320px;
+            position: fixed;
             top: 20px;
-            height: fit-content;
+            left: 80px;
+            bottom: 20px;              /* 可选，限制底部边界 */
+            max-height: calc(100vh - 40px); /* 减去上下间距，防止溢出视口 */
+            overflow-y: auto;          /* 内容过多时内部滚动 */
+            background: var(--bg-color); /* 继承背景色，避免透明 */
+            z-index: 100;              /* 低于评论框的 1000，但高于普通内容 */
+            border-radius: 16px;       /* 保持原有圆角 */
+            padding: 4px 12px;          /* 为阴影留出空间 */
+            box-sizing: border-box;      /* 确保宽度和高度包含内边距 */
         }
 
         .main-feed {
             flex: 1;
             min-width: 0;
             max-width: 850px;
+            margin-left: 320px;        /* 侧边栏宽度 280px + 额外间距 40px（可根据需要调整） */
             border: 1px solid var(--border-color);
             border-radius: 16px;
             min-height: 100vh;
@@ -177,42 +185,51 @@
 
         /* ================= 搜索框 ================= */
         .search-container {
-            position: relative;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 9999px;
+            padding: 0 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             margin-bottom: 20px;
+            position: relative;
             display: flex;
             align-items: center;
         }
         .search-input {
+            border: none;
+            background: transparent;
+            padding: 12px 40px 12px 8px;  /* 右侧留出按钮空间 */
             width: 100%;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 12px 40px 12px 15px;
-            border-radius: 9999px;
-            outline: none;
             font-size: 0.95rem;
-            transition: background var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed);
+            color: var(--text-color);
+            outline: none;
         }
         .search-input:focus {
             border-color: var(--primary-color);
         }
         .search-icon-btn {
             position: absolute;
-            right: 5px;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
             background: transparent;
+            border: none;
             color: var(--text-secondary);
             padding: 8px;
             border-radius: 50%;
-            transition: background var(--transition-speed), color var(--transition-speed);
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: none;
-            cursor: pointer;
         }
         .search-icon-btn:hover {
             background: rgba(29, 155, 240, 0.1);
             color: var(--primary-color);
+        }
+
+        /* 搜索结果列表容器 */
+        .search-result-list {
+            padding: 0 16px;
         }
 
         /* ================= 发布框工具栏样式 ================= */
@@ -289,12 +306,17 @@
             font-size: 14px;
         }
 
+        .sidebar .card:not(.profile-card) {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
         /* ================= 个人资料卡 ================= */
         .profile-card {
             text-align: center;
             border: 1px solid var(--border-color) !important;
             padding: 20px;
             position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         .profile-avatar-large {
             width: 80px;
@@ -644,18 +666,128 @@
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        /* 底部悬浮评论框 */
+        .comment-float-bar {
+            position: fixed;           /* 固定定位 */
+            bottom: 20px;              /* 距离视口底部 20px */
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 16px 18px 12px 18px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;             /* 确保在最上层 */
+            transition: background-color var(--transition-speed), 
+                        border-color var(--transition-speed), 
+                        box-shadow var(--transition-speed);
+            box-sizing: border-box;
+            /* 移除之前的 margin 和 width:auto */
+            width: auto;                /* 宽度将由 JS 动态设置 */
+            left: 0;                    /* 占位，实际由 JS 设置 */
+        }
+
+        /* 头像容器：垂直排列 */
+        .comment-float-bar .avatar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 4px;               /* 头像与昵称间距 */
+            flex-shrink: 0;
+        }
+
+        /* 昵称样式 */
+        .comment-float-bar .avatar-nickname {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--text-secondary);
+            max-width: 60px;        /* 限制宽度，防止过长 */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .comment-float-bar .avatar-small {
+            margin-right: 0;
+        }
+
+        .comment-float-bar .comment-input {
+            width: 100%;
+            padding: 8px 12px 40px 12px;    /* 底部留空避免按钮遮挡 */
+            padding-right: 72px;             /* 右侧为按钮留水平空间 */
+            box-sizing: border-box;
+            flex: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            color: var(--text-color);
+            font-size: 1rem;
+            outline: none;
+            resize: none;
+            overflow-y: auto;
+            min-height: 60px;
+            max-height: 120px;
+            line-height: 1.4;
+            font-family: inherit;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .comment-float-bar .input-wrapper {
+            flex: 1;                /* 占满剩余宽度 */
+            position: relative;     /* 为按钮绝对定位提供参考 */
+        }
+
+        .comment-float-bar .comment-input::-webkit-scrollbar {
+            display: none;                /* Chrome/Safari 隐藏滚动条 */
+        }
+
+        .comment-float-bar .comment-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .comment-float-bar .post-btn {
+            position: absolute;
+            bottom: 12px;
+            right: 8px;
+            padding: 4px 16px;
+            font-size: 0.9rem;
+            border-radius: 16px;
+        }
+
+        /* 为防止底部内容被固定栏遮挡，给详情容器增加底部内边距 */
+        #tweetDetailView {
+            display: none;          /* 默认隐藏 */
+            flex-direction: column; /* 垂直排列 */
+            height: 100%;           /* 占满父容器高度（.main-feed 有 min-height: 100vh） */
+        }
+
+        #detailContent {
+            flex: 1;                /* 内容区自动撑开剩余空间 */
+            overflow-y: auto;       /* 内容过多时滚动 */
+            padding: 0 16px;
+        }
 
         /* ================= 响应式 ================= */
         @media (max-width: 850px) { 
             .wrapper {
-                flex-direction: column;
+                flex-direction: column;  /* 恢复原有 flex 列布局 */
                 gap: 20px;
             }
             .sidebar {
+                position: static;        /* 取消固定定位 */
                 width: 100%;
-                position: static;
+                max-height: none;
+                overflow-y: visible;
+                margin-bottom: 0;
+                left: auto;
+                top: auto;
             }
             .main-feed {
+                margin-left: 0;          /* 取消左边距 */
                 max-width: 100%;
                 border: none;
             }
@@ -665,6 +797,12 @@
             }
             .modal-right-col {
                 margin-bottom: 15px;
+            }
+            .comment-float-bar {
+                left: 20px !important;      /* 强制覆盖 JS 设置的 left */
+                right: 20px !important;     /* 使用 right 控制宽度 */
+                width: auto !important;     /* 宽度自动 */
+                transform: none;            /* 避免冲突 */
             }
         }
     </style>
@@ -779,6 +917,32 @@
                 
                 <div id="detailContent"></div>
             </div>
+
+            <!-- 搜索结果视图（默认隐藏） -->
+            <div id="searchResultView" style="display: none;">
+                <div class="detail-header">
+                    <button class="back-btn-circle" onclick="goBackFromSearch()">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                        </svg>
+                    </button>
+                    <span id="searchResultTitle" style="font-weight: 800; font-size: 1.2rem;">搜索</span>
+                </div>
+                <div id="searchResultList" class="search-result-list"></div>
+            </div>
+
+        </div>
+
+         <!-- 底部悬浮评论框（默认隐藏） -->
+        <div id="commentFloatBar" class="comment-float-bar" style="display: none;">
+            <div class="avatar-container">
+                <img src="" id="floatAvatar" class="avatar-small" alt="">
+                <span id="floatNickname" class="avatar-nickname">Loading...</span>
+            </div>
+            <div class="input-wrapper">
+                <textarea id="floatCommentInput" class="comment-input" placeholder="发布你的评论..." rows="2"></textarea>
+                <button id="floatPostCommentBtn" class="post-btn">评论</button>
+            </div>
         </div>
 
     </div>
@@ -787,6 +951,7 @@
         // 脚本：API 常量、页面状态、初始化、事件处理、API 交互、DOM 渲染
         const API_BASE = 'http://localhost:5000/api';
         let currentPostFile = null;
+        let previousView = 'list'; // 可能值: 'list', 'search'
 
         const ICONS = {
             like: 'https://img.icons8.com/?size=100&id=86721&format=png&color=FA5252',
@@ -834,9 +999,25 @@
         }
 
         // 执行搜索：获取输入框的值并调用 fetchTweets 进行搜索
-        function performSearch() {
+        async function performSearch() {
             const query = document.getElementById('searchInput').value.trim();
-            fetchTweets(query);
+            if (!query) return;
+
+            // 更新标题
+            document.getElementById('searchResultTitle').innerText = `"${query}"的搜索结果`;
+
+            // 隐藏列表和详情，显示搜索结果视图
+            document.getElementById('tweetListView').style.display = 'none';
+            document.getElementById('tweetDetailView').style.display = 'none';
+            document.getElementById('searchResultView').style.display = 'block';
+
+            // 隐藏评论悬浮框（如果显示着）
+            const floatBar = document.getElementById('commentFloatBar');
+            if (floatBar) floatBar.style.display = 'none';
+            window.removeEventListener('resize', updateFloatBarPosition);
+
+            // 获取搜索结果并渲染
+            await fetchSearchResults(query);
         }
 
 
@@ -1001,6 +1182,117 @@
                     </div>
                 </div>
             `;
+
+                list.appendChild(card);
+            });
+        }
+
+        // 获取搜索结果
+        async function fetchSearchResults(query) {
+            const listContainer = document.getElementById('searchResultList');
+            listContainer.innerHTML = '<div style="padding:40px; text-align:center;">加载中...</div>';
+
+            try {
+                const res = await fetch(`${API_BASE}/tweets?search=${encodeURIComponent(query)}`);
+                if (!res.ok) throw new Error('搜索失败');
+                const tweets = await res.json();
+                renderSearchResults(tweets);
+            } catch (e) {
+                console.error(e);
+                listContainer.innerHTML = '<div style="padding:40px; text-align:center; color:red;">加载失败</div>';
+            }
+        }
+
+        // 渲染搜索结果
+        function renderSearchResults(tweets) {
+            const list = document.getElementById('searchResultList');
+            list.innerHTML = '';
+
+            if (!tweets.length) {
+                list.innerHTML = `<div style="padding:40px; text-align:center; color:var(--text-secondary)">暂无内容</div>`;
+                return;
+            }
+
+            tweets.forEach(tweet => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.cursor = 'pointer';
+
+                card.onclick = (e) => {
+                    if (e.target.closest('button') || e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') return;
+                    document.getElementById('searchResultView').style.display = 'none';
+                    openDetail(tweet.id);
+                };
+
+                // 生成卡片内容（与 renderTweets 完全一致，可复制过来，但注意确保使用了 escapeHtml 等函数）
+                const avatarSrc = tweet.userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(tweet.user)}&background=random`;
+
+                let mediaHtml = '';
+                let hasMedia = false;
+                if (tweet.mediaUrl) {
+                    hasMedia = true;
+                    if (tweet.mediaType === 'video') {
+                        mediaHtml = `<video src="${tweet.mediaUrl}" controls></video>`;
+                    } else {
+                        mediaHtml = `<img src="${tweet.mediaUrl}" loading="lazy">`;
+                    }
+                }
+
+                const tagsHtml = (tweet.tags || []).map(t => `<span style="color:var(--primary-color); margin-right:20px;">#${t}</span>`).join('');
+
+                const commentCount = tweet.comments ? tweet.comments.length : 0;
+                const reactions = tweet.reactions || { like: 0, confused: 0, omg: 0 };
+
+                const reactionConfig = [
+                    { type: 'like', icon: 'like', iconFilled: 'like_filled', count: reactions.like, colorClass: 'type-like' },
+                    { type: 'confused', icon: 'confused', iconFilled: 'confused_filled', count: reactions.confused, colorClass: 'type-confused' },
+                    { type: 'omg', icon: 'omg', iconFilled: 'omg_filled', count: reactions.omg, colorClass: 'type-omg' }
+                ];
+
+                let actionsHtml = `
+                    <button class="action-item" onclick="event.stopPropagation(); openDetail('${tweet.id}')">
+                        <img src="${ICONS.comment}" class="action-icon">
+                        <span>${commentCount > 0 ? commentCount : ''}</span>
+                    </button>
+                `;
+
+                reactionConfig.forEach(r => {
+                    const isActive = hasUserReacted(tweet.id, r.type);
+                    const currentIcon = isActive ? ICONS[r.iconFilled] : ICONS[r.icon];
+                    const activeClass = isActive ? `active-${r.type}` : '';
+                    actionsHtml += `
+                        <button class="action-item ${r.colorClass} ${activeClass}" 
+                            onclick="handleReaction(event, '${tweet.id}', '${r.type}')" 
+                            id="btn-${tweet.id}-${r.type}">
+                            <img src="${currentIcon}" class="action-icon" id="img-${tweet.id}-${r.type}">
+                            <span id="count-${tweet.id}-${r.type}">${r.count > 0 ? r.count : ''}</span>
+                        </button>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="tweet-header">
+                        <img src="${avatarSrc}" class="avatar-small">
+                        <div>
+                            <span class="username">${escapeHtml(tweet.user)}</span>
+                            <span class="timestamp">· ${tweet.timestamp}</span>
+                        </div>
+                    </div>
+                    <div class="tweet-body" style="display:block;">
+                        <div style="display:flex; justify-content:space-between; gap:15px;">
+                            <div class="tweet-content-left">
+                                <div class="tweet-text">${escapeHtml(tweet.content)}</div>
+                                <div>${tagsHtml}</div>
+                            </div>
+                            <div class="tweet-media-right ${hasMedia ? 'active' : ''}">
+                                ${mediaHtml}
+                            </div>
+                        </div>
+                        <div class="tweet-footer">
+                            ${actionsHtml}
+                        </div>
+                    </div>
+                `;
 
                 list.appendChild(card);
             });
@@ -1199,8 +1491,35 @@
         // 详情页逻辑 
         // ===================
         
+        // 更新悬浮框位置，使其与右侧主内容区对齐
+        function updateFloatBarPosition() {
+            const floatBar = document.getElementById('commentFloatBar');
+            if (!floatBar || floatBar.style.display === 'none') return;
+            // 如果是移动端（小于等于850px），让 CSS 处理，不设置 left/width
+            if (window.innerWidth <= 850) {
+                floatBar.style.left = '';
+                floatBar.style.width = '';
+                return;
+            }
+            const mainFeed = document.querySelector('.main-feed');
+            if (!mainFeed) return;
+            const rect = mainFeed.getBoundingClientRect();
+            floatBar.style.left = rect.left + 15 + 'px';
+            floatBar.style.width = rect.width - 30 + 'px';
+        }
+
         // 打开详情页
         async function openDetail(id) {
+            // 确保搜索结果视图被隐藏
+            // 记录当前可见视图
+            if (document.getElementById('searchResultView').style.display === 'block') {
+                previousView = 'search';
+            } else {
+                previousView = 'list';
+            }
+            // 然后隐藏搜索结果视图（如果有）
+            document.getElementById('searchResultView').style.display = 'none';
+
             // 1. 切换视图
             document.getElementById('tweetListView').style.display = 'none';
             document.getElementById('tweetDetailView').style.display = 'block';
@@ -1208,6 +1527,39 @@
 
             const container = document.getElementById('detailContent');
             container.innerHTML = '<div style="padding:20px; text-align:center;">加载中...</div>';
+
+            // 显示底部悬浮框
+            const floatBar = document.getElementById('commentFloatBar');
+            floatBar.style.display = 'flex';
+            // 更新头像
+            document.getElementById('floatAvatar').src = document.getElementById('displayAvatar').src;
+            // 更新昵称
+            document.getElementById('floatNickname').innerText = document.getElementById('displayNickname').innerText;
+            // 清除输入框旧内容
+            document.getElementById('floatCommentInput').value = '';
+
+            // 更新位置
+            updateFloatBarPosition();
+            // 监听窗口大小变化
+            window.addEventListener('resize', updateFloatBarPosition);
+
+            // 为评论按钮绑定点击事件（注意避免重复绑定）
+            const postBtn = document.getElementById('floatPostCommentBtn');
+            // 移除之前绑定的事件（如果有）
+            postBtn.replaceWith(postBtn.cloneNode(true));
+            const newPostBtn = document.getElementById('floatPostCommentBtn');
+            newPostBtn.addEventListener('click', function() {
+                postComment(id); // 使用当前详情页的推文 id
+            });
+
+            // 同时允许回车发送
+            const floatInput = document.getElementById('floatCommentInput');
+            floatInput.onkeydown = function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();  // 阻止默认的换行
+                    postComment(id);
+                }
+            };
 
             try {
                 // 2. 获取数据
@@ -1286,19 +1638,9 @@
                         
                         ${mediaHtml}
 
-                        <div style="padding:15px 0; border-bottom:1px solid var(--border-color); color:var(--text-secondary); font-size:0.9rem;">
-                            <span>${tweet.timestamp}</span>
-                        </div>
-
                         <div class="tweet-footer" style="padding:12px 0; justify-content: flex-start; gap: 120px; border-bottom:1px solid var(--border-color); margin:0;">
                             ${detailActionsHtml}
                         </div>
-                    </div>
-
-                    <div class="comment-box-area">
-                        <img src="${document.getElementById('displayAvatar').src}" class="avatar-small">
-                        <input type="text" id="commentInput-${tweet.id}" class="comment-input" placeholder="发布你的评论..." onkeydown="if(event.key==='Enter') postComment('${tweet.id}')">
-                        <button onclick="postComment('${tweet.id}')" class="post-btn" style="padding:6px 16px;">评论</button>
                     </div>
 
                     <div style="padding-bottom: 40px;">
@@ -1312,17 +1654,36 @@
             }
         }
 
-        // 返回列表
+        // 返回列表或搜索结果
         function goBackFromDetail() {
             document.getElementById('tweetDetailView').style.display = 'none';
+            document.getElementById('commentFloatBar').style.display = 'none';
+            window.removeEventListener('resize', updateFloatBarPosition);
+
+            if (previousView === 'search') {
+                // 显示搜索结果视图，并重新搜索以更新数据
+                document.getElementById('searchResultView').style.display = 'block';
+                const query = document.getElementById('searchInput').value.trim();
+                if (query) {
+                    fetchSearchResults(query); // 重新搜索保持数据最新
+                }
+            } else {
+                document.getElementById('tweetListView').style.display = 'block';
+                fetchTweets(); // 刷新列表
+            }
+        }
+
+        // 从搜索结果返回列表
+        function goBackFromSearch() {
+            document.getElementById('searchResultView').style.display = 'none';
             document.getElementById('tweetListView').style.display = 'block';
-            // 重新获取列表以更新评论数等状态
-            fetchTweets(); 
+            document.getElementById('searchResultList').innerHTML = ''; // 清空结果
+            fetchTweets(); // 刷新列表
         }
 
         // 发送评论
         async function postComment(id) {
-            const input = document.getElementById(`commentInput-${id}`);
+            const input = document.getElementById(`floatCommentInput`);
             const text = input.value.trim();
             if (!text) return;
 
@@ -1334,6 +1695,7 @@
                 });
                 // 评论成功后，重新加载详情页
                 if (res.ok) {
+                    input.value = '';
                     openDetail(id);
                 } else {
                     const errorData = await res.json();

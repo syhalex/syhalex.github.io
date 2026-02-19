@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cyber?space v20260218</title>
+    <title>Cyber?space v20260219</title>
 
     <style>
         /* =============== 黑色(默认) =============== */
@@ -59,6 +59,7 @@
             color: var(--text-color);
             margin: 0;
             overflow-y: scroll;
+            overflow-x: hidden;
             transition: background-color var(--transition-speed), color var(--transition-speed);
         }
 
@@ -80,11 +81,16 @@
             bottom: 20px;              /* 可选，限制底部边界 */
             max-height: calc(100vh - 40px); /* 减去上下间距，防止溢出视口 */
             overflow-y: auto;          /* 内容过多时内部滚动 */
+            scrollbar-width: none;    /* Firefox 隐藏滚动条 */
+            -ms-overflow-style: none;    /* IE 10+ 隐藏滚动条 */
             background: var(--bg-color); /* 继承背景色，避免透明 */
             z-index: 100;              /* 低于评论框的 1000，但高于普通内容 */
             border-radius: 16px;       /* 保持原有圆角 */
             padding: 4px 12px;          /* 为阴影留出空间 */
             box-sizing: border-box;      /* 确保宽度和高度包含内边距 */
+        }
+        .sidebar::-webkit-scrollbar {  /* Chrome/Safari 隐藏滚动条 */
+            display: none;
         }
 
         .main-feed {
@@ -195,6 +201,9 @@
             display: flex;
             align-items: center;
         }
+        .search-container:focus-within {
+            border-color: var(--primary-color);
+        }
         .search-input {
             border: none;
             background: transparent;
@@ -240,12 +249,24 @@
             background: transparent;
             border: none;
             border-bottom: 1px solid transparent; /* 默认隐藏线 */
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
             color: var(--text-color);
-            padding: 10px 0;
+            padding: 10px 6px;
             resize: none;
             outline: none;
             font-size: 1.1rem;
             box-sizing: border-box;
+        }
+        textarea::-webkit-scrollbar {
+            display: none;
+        }
+        textarea:focus {
+            box-shadow: 
+                0 0 0 1.2px var(--primary-color);
         }
 
         .toolbar {
@@ -397,6 +418,24 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+        /* 强制推文文本换行 */
+        .tweet-text {
+            word-break: break-word;      /* 兼容性更好 */
+            overflow-wrap: break-word;   /* 现代标准 */
+        }
+
+        /* 标签容器允许换行 */
+        .tweet-content-left div:last-child {  /* 标签所在的 div */
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 8px;                /* 标签间距，可调整 */
+        }
+
+        /* 可选：确保左侧内容区不压缩 */
+        .tweet-content-left {
+            min-width: 0;                /* 已有，确保 */
+            width: 100%;                 /* 强制占满剩余空间 */
         }
 
         /*  reaction栏 */
@@ -771,6 +810,32 @@
             padding: 0 16px;
         }
 
+        /* 1. 详情页的推文文本强制换行 */
+        #detailContent div[style*="font-size:1.4rem"] {
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;        /* 保留换行符并自动换行 */
+        }
+
+        /* 2. 详情页的标签容器换行（多行显示） */
+        #detailContent div[style*="margin: 10px 0 15px 0"] {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 8px;                 /* 标签间距，可调整 */
+        }
+
+        /* 3. 列表页的标签换行 */
+        .tweet-content-left div:last-child {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 8px;
+        }
+
+        #tweetList .card:active {
+            background-color: rgba(128, 128, 128, 0.2); /* 半透明灰色，适应深色/浅色主题 */
+            transition: background-color 0.2s;           /* 快速过渡，增强反馈感 */
+        }
+
         /* ================= 响应式 ================= */
         @media (max-width: 850px) { 
             .wrapper {
@@ -962,6 +1027,20 @@
             omg_filled: 'https://img.icons8.com/?size=100&id=UpwQYGKI5ULX&format=png&color=82C91E',
             comment: 'https://img.icons8.com/?size=100&id=q8JjcqIiTjN6&format=png&color=228BE6'
         };
+
+        
+        // 动态调整 textarea 的高度
+        const autoResize = (el) => {
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+        };
+
+        document.getElementById('content').addEventListener('input', function() {
+            autoResize(this);
+        });
+
+        // 初始化时也执行一次（如果已有内容）
+        autoResize(document.getElementById('content'));
 
 
         // =========================

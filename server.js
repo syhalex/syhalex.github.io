@@ -14,10 +14,11 @@ if (!fs.existsSync('./uploads')) {
     fs.mkdirSync('./uploads');
 }
 
-// --- Multer 配置 (保持不变，支持头像和媒体) ---
+// --- Multer 配置 ---
 const storage = multer.diskStorage({
     destination: './uploads/',
     filename: (req, file, cb) => {
+        // 解决中文文件名乱码问题
         file.originalname = Buffer.from(file.originalname, "latin1").toString("utf8");
         cb(null, Date.now() + '-' + file.originalname);
     }
@@ -29,38 +30,27 @@ const upload = multer({
 
 app.use('/uploads', express.static('uploads'));
 
-// --- 模拟数据库 ---
+// --- 数据存储 ---
 let tweets = []; 
-// 新增：模拟个人资料数据 (实际项目中应存入数据库)
 let userProfile = {
     nickname: "新用户",
     bio: "这个人很懒，什么都没写...",
-    avatar: null // 存储头像 URL
+    avatar: null 
 };
 
-// --- 接口 1: 获取个人资料 ---
-app.get('/api/profile', (req, res) => {
-    res.json(userProfile);
-});
-
-// --- 接口 2: 更新个人资料 (支持上传头像) ---
+// --- 接口: 获取/更新 个人资料 ---
+app.get('/api/profile', (req, res) => res.json(userProfile));
 app.post('/api/profile', upload.single('avatar'), (req, res) => {
     const { nickname, bio } = req.body;
-    
     if (nickname) userProfile.nickname = nickname;
     if (bio) userProfile.bio = bio;
-    
-    // 如果上传了新头像，更新头像 URL
-    if (req.file) {
-        userProfile.avatar = `http://localhost:5000/uploads/${req.file.filename}`;
-    }
-
+    if (req.file) userProfile.avatar = `http://localhost:5000/uploads/${req.file.filename}`;
     res.json(userProfile);
 });
 
-// --- 接口 3: 发布推文 (稍微修改，不再从前端传 user，而是使用当前 Profile 的昵称) ---
+// --- 接口: 发布推文 ---
 app.post('/api/tweets', upload.single('file'), (req, res) => {
-    const { content, tags } = req.body; // 注意：去掉了 user 字段
+    const { content, tags } = req.body;
     
     let fileType = null;
     let mediaUrl = null;
@@ -68,30 +58,31 @@ app.post('/api/tweets', upload.single('file'), (req, res) => {
     if (req.file) {
         mediaUrl = `http://localhost:5000/uploads/${req.file.filename}`;
         const ext = path.extname(req.file.originalname).toLowerCase();
-        if (['.mp4', '.webm', '.ogg', '.mov'].includes(ext)) {
-            fileType = 'video';
-        } else {
-            fileType = 'image';
-        }
+        fileType = ['.mp4', '.webm', '.ogg', '.mov'].includes(ext) ? 'video' : 'image';
     }
 
     const newTweet = {
-        id: Date.now(),
-        // 直接使用当前的个人资料信息
+        id: Date.now().toString(), // 转为字符串方便比较
         user: userProfile.nickname, 
-        userAvatar: userProfile.avatar, // 新增：保存发推时的头像
+        userAvatar: userProfile.avatar,
         content: content,
         mediaUrl: mediaUrl,
         mediaType: fileType,
         tags: tags ? tags.split(/[,，]/).map(t => t.trim()).filter(t => t) : [],
-        timestamp: new Date().toLocaleString()
+        timestamp: new Date().toLocaleString(),
+        reactions: {
+            like: 0,
+            confused: 0,
+            omg: 0
+        },
+        comments: [] 
     };
 
     tweets.unshift(newTweet);
     res.status(201).json(newTweet);
 });
 
-// --- 接口 4: 获取推文列表 ---
+// --- 接口: 获取推文列表 ---
 app.get('/api/tweets', (req, res) => {
     const { search } = req.query;
     let filteredTweets = [...tweets];
@@ -104,6 +95,53 @@ app.get('/api/tweets', (req, res) => {
         );
     }
     res.json(filteredTweets);
+});
+
+// === 接口: 获取单条推文详情 ===
+app.get('/api/tweets/:id', (req, res) => {
+    const tweet = tweets.find(t => t.id === req.params.id);
+    if (tweet) res.json(tweet);
+    else res.status(404).json({ error: "Not found" });
+});
+
+// === 接口: 处理互动 ===
+app.post('/api/tweets/:id/react', (req, res) => {
+    const { type, action } = req.body;
+    const tweet = tweets.find(t => t.id === req.params.id);
+    
+    if (tweet && tweet.reactions[type] !== undefined) {
+        if (action === 'add') {
+            tweet.reactions[type]++;
+        } else if (action === 'remove') {
+            // 防止减成负数
+            if (tweet.reactions[type] > 0) {
+                tweet.reactions[type]--;
+            }
+        }
+        res.json(tweet);
+    } else {
+        res.status(404).json({ error: "Error" });
+    }
+});
+
+// === 接口: 发布评论 ===
+app.post('/api/tweets/:id/comment', (req, res) => {
+    const { text } = req.body;
+    const tweet = tweets.find(t => t.id === req.params.id);
+
+    if (tweet) {
+        const newComment = {
+            id: Date.now(),
+            user: userProfile.nickname,
+            avatar: userProfile.avatar,
+            text: text,
+            timestamp: new Date().toLocaleString()
+        };
+        tweet.comments.unshift(newComment);
+        res.json(tweet);
+    } else {
+        res.status(404).json({ error: "Not found" });
+    }
 });
 
 const PORT = 5000;

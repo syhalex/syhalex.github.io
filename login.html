@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>登录 / 注册 - CyberSpace</title>
+    <title>登录 / 注册 - Cyber?Space</title>
     <style>
         :root {
             --primary-color: #1d9bf0;
@@ -202,7 +202,7 @@
         }
 
         .error-msg {
-            color: #f91880;
+            color: #ff0000;
             font-size: 0.9rem;
             margin-top: 10px;
             min-height: 20px;
@@ -221,7 +221,7 @@
     </div>
 
     <div class="auth-container">
-        <div class="logo">CyberSpace</div>
+        <div class="logo">登录/注册</div>
 
         <div class="tabs">
             <div class="tab active" id="tab-login" onclick="switchTab('login')">登录</div>
@@ -231,7 +231,7 @@
         <div id="form-login">
             <div class="form-group">
                 <label>昵称</label>
-                <input type="text" id="login-username" placeholder="请输入唯一昵称">
+                <input type="text" id="login-username" placeholder="请输入昵称">
             </div>
             <div class="form-group">
                 <label>密码</label>
@@ -244,12 +244,12 @@
         <div id="form-register" style="display: none;">
             <div class="form-group">
                 <label>昵称</label>
-                <input type="text" id="register-username" placeholder="大小写字母、数字、_、-">
-                <div class="hint">作为全局唯一标识符，且不可更改。</div>
+                <input type="text" id="register-username" placeholder="输入大小写字母、数字、_、-">
+                <div class="hint">作为全局唯一标识符。</div>
             </div>
             <div class="form-group">
                 <label>密码</label>
-                <input type="password" id="register-password" placeholder="请设置密码">
+                <input type="password" id="register-password" placeholder="请设置6-16位密码">
             </div>
             <div class="error-msg" id="register-error"></div>
             <button class="submit-btn" onclick="handleAuth('register')">注册并绑定</button>
@@ -318,7 +318,7 @@
                 }
                 const passRegex = /^[a-zA-Z0-9_]{6,16}$/;
                 if (!passRegex.test(password)) {
-                    errorEl.innerText = '密码长度需为6-16位，仅限大小写字母、数字和下划线';
+                    errorEl.innerText = '请输入6-16位大小写字母/数字/下划线组成的密码';
                     return;
                 }
 

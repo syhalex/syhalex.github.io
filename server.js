@@ -146,7 +146,7 @@ app.post('/api/login', (req, res) => {
 
     db.get(`SELECT * FROM users WHERE nickname = ? AND password = ?`, [nickname, password], (err, row) => {
         if (err) return res.status(500).json({ error: err.message });
-        if (!row) return res.status(401).json({ error: "昵称或密码错误" });
+        if (!row) return res.status(401).json({ error: "昵称不存在或密码错误" });
 
         // 访客状态继承：如果传递了 visitorId，同理转移数据
         if (visitorId) {

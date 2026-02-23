@@ -23,19 +23,20 @@ const storage = multer.diskStorage({
         cb(null, Date.now() + '-' + file.originalname);
     }
 });
-const upload = multer({ 
+const upload = multer({
     storage: storage,
-    limits: { fileSize: 50 * 1024 * 1024 } 
+    limits: { fileSize: 50 * 1024 * 1024 }
 });
 
 app.use('/uploads', express.static('uploads'));
+app.use(express.static(__dirname));
 
 // --- 数据存储 ---
-let tweets = []; 
+let tweets = [];
 let userProfile = {
     nickname: "新用户",
     bio: "这个人很懒，什么都没写...",
-    avatar: null 
+    avatar: null
 };
 
 // --- 接口: 获取/更新 个人资料 ---
@@ -49,25 +50,28 @@ app.post('/api/profile', upload.single('avatar'), (req, res) => {
 });
 
 // --- 接口: 发布推文 ---
-app.post('/api/tweets', upload.single('file'), (req, res) => {
+app.post('/api/tweets', upload.array('files', 9), (req, res) => {
     const { content, tags } = req.body;
-    
-    let fileType = null;
-    let mediaUrl = null;
 
-    if (req.file) {
-        mediaUrl = `http://localhost:5000/uploads/${req.file.filename}`;
-        const ext = path.extname(req.file.originalname).toLowerCase();
-        fileType = ['.mp4', '.webm', '.ogg', '.mov'].includes(ext) ? 'video' : 'image';
+    // 构建多媒体数组
+    const media = [];
+    if (req.files && req.files.length > 0) {
+        req.files.forEach(file => {
+            const url = `http://localhost:5000/uploads/${file.filename}`;
+            const ext = path.extname(file.originalname).toLowerCase();
+            const type = ['.mp4', '.webm', '.ogg', '.mov'].includes(ext) ? 'video' : 'image';
+            media.push({ url, type });
+        });
     }
 
     const newTweet = {
         id: Date.now().toString(), // 转为字符串方便比较
-        user: userProfile.nickname, 
+        user: userProfile.nickname,
         userAvatar: userProfile.avatar,
         content: content,
-        mediaUrl: mediaUrl,
-        mediaType: fileType,
+        media: media,              // 多媒体数组
+        mediaUrl: media.length > 0 ? media[0].url : null,   // 兼容旧字段
+        mediaType: media.length > 0 ? media[0].type : null,  // 兼容旧字段
         tags: tags ? tags.split(/[,，]/).map(t => t.trim()).filter(t => t) : [],
         timestamp: new Date().toLocaleString(),
         reactions: {
@@ -75,7 +79,7 @@ app.post('/api/tweets', upload.single('file'), (req, res) => {
             confused: 0,
             omg: 0
         },
-        comments: [] 
+        comments: []
     };
 
     tweets.unshift(newTweet);
@@ -89,8 +93,8 @@ app.get('/api/tweets', (req, res) => {
 
     if (search) {
         const query = search.toLowerCase();
-        filteredTweets = filteredTweets.filter(t => 
-            (t.content && t.content.toLowerCase().includes(query)) || 
+        filteredTweets = filteredTweets.filter(t =>
+            (t.content && t.content.toLowerCase().includes(query)) ||
             (t.user && t.user.toLowerCase().includes(query))
         );
     }
@@ -108,7 +112,7 @@ app.get('/api/tweets/:id', (req, res) => {
 app.post('/api/tweets/:id/react', (req, res) => {
     const { type, action } = req.body;
     const tweet = tweets.find(t => t.id === req.params.id);
-    
+
     if (tweet && tweet.reactions[type] !== undefined) {
         if (action === 'add') {
             tweet.reactions[type]++;

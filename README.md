@@ -8,6 +8,8 @@ server.js: 后端
 
 index.html: 前端
 
+uploads 中可能包含一些测试图片
+
 **future plans:** 
 
 1、完善搜索功能: 标签搜索; 

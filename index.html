@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cyber?space v20260219</title>
+    <title>Cyber?space v20260223</title>
 
     <style>
         /* =============== 黑色(默认) =============== */
@@ -31,7 +31,7 @@
             --border-color: #eff3f4;
             --input-bg: #eff3f4;
         }
-        
+
         /* 黑色背景将图标颜色反转 */
         .theme-icon {
             filter: invert(1) brightness(2);
@@ -45,10 +45,10 @@
 
         /* 全局过渡动画：确保边框和颜色同步切换 */
         * {
-            transition: background-color var(--transition-speed), 
-                        color var(--transition-speed), 
-                        border-color var(--transition-speed), 
-                        box-shadow var(--transition-speed);
+            transition: background-color var(--transition-speed),
+                color var(--transition-speed),
+                border-color var(--transition-speed),
+                box-shadow var(--transition-speed);
             box-sizing: border-box;
         }
 
@@ -71,25 +71,39 @@
             padding: 20px;
             margin: 0 auto;
             box-sizing: border-box;
+            align-items: flex-start;
+            /* 关键：防止 sidebar 撑满整列导致 sticky 失效 */
         }
 
         .sidebar {
             width: 320px;
-            position: fixed;
+            flex-shrink: 0;
+            /* 防止被挤压 */
+            position: sticky;
             top: 20px;
-            left: 80px;
-            bottom: 20px;              /* 可选，限制底部边界 */
-            max-height: calc(100vh - 40px); /* 减去上下间距，防止溢出视口 */
-            overflow-y: auto;          /* 内容过多时内部滚动 */
-            scrollbar-width: none;    /* Firefox 隐藏滚动条 */
-            -ms-overflow-style: none;    /* IE 10+ 隐藏滚动条 */
-            background: var(--bg-color); /* 继承背景色，避免透明 */
-            z-index: 100;              /* 低于评论框的 1000，但高于普通内容 */
-            border-radius: 16px;       /* 保持原有圆角 */
-            padding: 4px 12px;          /* 为阴影留出空间 */
-            box-sizing: border-box;      /* 确保宽度和高度包含内边距 */
+            /* 依靠外层 wrapper 的 flex gap 布局，无需 left/bottom 固定坐标 */
+            max-height: calc(100vh - 40px);
+            /* 减去上下间距，防止溢出视口 */
+            overflow-y: auto;
+            /* 内容过多时内部滚动 */
+            scrollbar-width: none;
+            /* Firefox 隐藏滚动条 */
+            -ms-overflow-style: none;
+            /* IE 10+ 隐藏滚动条 */
+            background: var(--bg-color);
+            /* 继承背景色，避免透明 */
+            z-index: 100;
+            /* 低于评论框的 1000，但高于普通内容 */
+            border-radius: 16px;
+            /* 保持原有圆角 */
+            padding: 4px 12px;
+            /* 为阴影留出空间 */
+            box-sizing: border-box;
+            /* 确保宽度和高度包含内边距 */
         }
-        .sidebar::-webkit-scrollbar {  /* Chrome/Safari 隐藏滚动条 */
+
+        .sidebar::-webkit-scrollbar {
+            /* Chrome/Safari 隐藏滚动条 */
             display: none;
         }
 
@@ -97,7 +111,7 @@
             flex: 1;
             min-width: 0;
             max-width: 850px;
-            margin-left: 320px;        /* 侧边栏宽度 280px + 额外间距 40px（可根据需要调整） */
+            /* 由 wrapper 的 gap 自动分隔边距，不再手工指定 margin-left */
             border: 1px solid var(--border-color);
             border-radius: 16px;
             min-height: 100vh;
@@ -129,6 +143,7 @@
             cursor: pointer;
             transition: 0.2s;
         }
+
         button:hover {
             background: var(--primary-hover);
         }
@@ -139,17 +154,19 @@
             border: 1px solid var(--border-color);
             color: var(--text-color);
         }
+
         button.btn-outline:hover {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
         }
+
         body.light-mode button.btn-outline:hover {
-            background: rgba(0,0,0,0.05);
+            background: rgba(0, 0, 0, 0.05);
         }
 
 
         /* ================= 主题切换按钮 ================= */
         .theme-toggle-icon {
-            position: absolute; 
+            position: absolute;
             top: 15px;
             right: 15px;
             width: 32px;
@@ -162,7 +179,7 @@
             border: none;
             background: transparent;
             z-index: 10;
-            overflow: hidden; 
+            overflow: hidden;
         }
 
         .theme-toggle-icon:hover {
@@ -170,22 +187,30 @@
         }
 
         .theme-toggle-icon img {
-            position: absolute; 
+            position: absolute;
             width: 22px;
             height: 22px;
             transition: opacity var(--transition-speed) ease, transform var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .icon-moon { opacity: 0; transform: scale(0.5) rotate(-90deg); }
-        .icon-sun { opacity: 1; transform: scale(1) rotate(0deg); }
-
-        body.light-mode .icon-moon { 
-            opacity: 1; 
-            transform: scale(1) rotate(0deg); 
+        .icon-moon {
+            opacity: 0;
+            transform: scale(0.5) rotate(-90deg);
         }
-        body.light-mode .icon-sun { 
-            opacity: 0; 
-            transform: scale(0.5) rotate(90deg); 
+
+        .icon-sun {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+
+        body.light-mode .icon-moon {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+
+        body.light-mode .icon-sun {
+            opacity: 0;
+            transform: scale(0.5) rotate(90deg);
         }
 
 
@@ -201,21 +226,26 @@
             display: flex;
             align-items: center;
         }
+
         .search-container:focus-within {
             border-color: var(--primary-color);
         }
+
         .search-input {
             border: none;
             background: transparent;
-            padding: 12px 40px 12px 8px;  /* 右侧留出按钮空间 */
+            padding: 12px 40px 12px 8px;
+            /* 右侧留出按钮空间 */
             width: 100%;
             font-size: 0.95rem;
             color: var(--text-color);
             outline: none;
         }
+
         .search-input:focus {
             border-color: var(--primary-color);
         }
+
         .search-icon-btn {
             position: absolute;
             right: 8px;
@@ -231,6 +261,7 @@
             align-items: center;
             justify-content: center;
         }
+
         .search-icon-btn:hover {
             background: rgba(29, 155, 240, 0.1);
             color: var(--primary-color);
@@ -243,12 +274,13 @@
 
         /* ================= 发布框工具栏样式 ================= */
         /* 为了方便维护，将发布框底部的样式统一在这里管理 */
-        
+
         textarea {
             width: 100%;
             background: transparent;
             border: none;
-            border-bottom: 1px solid transparent; /* 默认隐藏线 */
+            border-bottom: 1px solid transparent;
+            /* 默认隐藏线 */
             border-radius: 8px;
             max-height: 300px;
             overflow-y: auto;
@@ -261,18 +293,22 @@
             font-size: 1.1rem;
             box-sizing: border-box;
         }
+
         textarea::-webkit-scrollbar {
             display: none;
         }
+
         textarea:focus {
-            box-shadow: 
+            box-shadow:
                 0 0 0 1.2px var(--primary-color);
         }
 
         .toolbar {
             display: flex;
-            justify-content: space-between; /* 左右两端分布 */
-            align-items: center; /* 垂直居中对齐 */
+            justify-content: space-between;
+            /* 左右两端分布 */
+            align-items: center;
+            /* 垂直居中对齐 */
             margin-top: 15px;
         }
 
@@ -314,9 +350,11 @@
             font-size: 14px;
             transition: border-color 0.2s;
         }
+
         #tags:focus {
             border-bottom: 1px solid var(--primary-color);
         }
+
         #tags::placeholder {
             color: var(--text-secondary);
         }
@@ -339,6 +377,7 @@
             position: relative;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
+
         .profile-avatar-large {
             width: 80px;
             height: 80px;
@@ -348,11 +387,13 @@
             object-fit: cover;
             background: var(--border-color);
         }
+
         .profile-name {
             font-weight: 800;
             font-size: 1.2rem;
             margin-bottom: 12px;
         }
+
         .profile-bio {
             color: var(--text-secondary);
             font-size: 0.9rem;
@@ -366,6 +407,7 @@
             align-items: center;
             margin-bottom: 4px;
         }
+
         .avatar-small {
             width: 40px;
             height: 40px;
@@ -374,26 +416,31 @@
             background: var(--border-color);
             object-fit: cover;
         }
+
         .username {
             font-weight: bold;
             margin-right: 5px;
             color: var(--text-color);
             font-size: 1.1rem;
         }
+
         .timestamp {
             font-size: 0.9rem;
             color: var(--text-secondary);
         }
+
         .tweet-body {
             display: flex;
             justify-content: space-between;
             gap: 15px;
             margin-left: 50px;
         }
+
         .tweet-content-left {
             flex: 1;
             min-width: 0;
         }
+
         .tweet-text {
             font-size: 1rem;
             line-height: 1.5;
@@ -401,51 +448,63 @@
             margin-bottom: 10px;
             color: var(--text-color);
         }
+
         .tweet-media-right {
             width: 120px;
-            height: 120px;
             flex-shrink: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tweet-media-right.active {
+            display: flex;
+        }
+
+        .tweet-media-right img,
+        .tweet-media-right video {
+            width: 120px;
+            height: 120px;
             border-radius: 12px;
             overflow: hidden;
             border: 1px solid var(--border-color);
-            display: none;
-        }
-        .tweet-media-right.active {
+            object-fit: cover;
             display: block;
         }
-        .tweet-media-right img,
-        .tweet-media-right video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+
         /* 强制推文文本换行 */
         .tweet-text {
-            word-break: break-word;      /* 兼容性更好 */
-            overflow-wrap: break-word;   /* 现代标准 */
+            word-break: break-word;
+            /* 兼容性更好 */
+            overflow-wrap: break-word;
+            /* 现代标准 */
         }
 
         /* 标签容器允许换行 */
-        .tweet-content-left div:last-child {  /* 标签所在的 div */
+        .tweet-content-left div:last-child {
+            /* 标签所在的 div */
             display: flex;
             flex-wrap: wrap;
-            gap: 4px 8px;                /* 标签间距，可调整 */
+            gap: 4px 8px;
+            /* 标签间距，可调整 */
         }
 
         /* 可选：确保左侧内容区不压缩 */
         .tweet-content-left {
-            min-width: 0;                /* 已有，确保 */
-            width: 100%;                 /* 强制占满剩余空间 */
+            min-width: 0;
+            /* 已有，确保 */
+            width: 100%;
+            /* 强制占满剩余空间 */
         }
 
         /*  reaction栏 */
         .tweet-footer {
             display: flex;
-            justify-content: flex-start;
-            gap: 120px;
+            justify-content: space-between;
+            max-width: 450px;
             margin-top: 12px;
-            max-width: 100%;
-            padding-left: 2px;
+            padding: 0 10px;
         }
 
         .action-item {
@@ -468,20 +527,35 @@
         }
 
         /* Like: 红色 */
-        .action-item.type-like:hover, .action-item.active-like { color: #f91880; }
-        .action-item.type-like:hover .action-icon, .action-item.active-like .action-icon {
+        .action-item.type-like:hover,
+        .action-item.active-like {
+            color: #f91880;
+        }
+
+        .action-item.type-like:hover .action-icon,
+        .action-item.active-like .action-icon {
             filter: grayscale(0) opacity(1) !important;
         }
 
         /* Confused: 橙色 */
-        .action-item.type-confused:hover, .action-item.active-confused { color: #fd7e14; }
-        .action-item.type-confused:hover .action-icon, .action-item.active-confused .action-icon {
+        .action-item.type-confused:hover,
+        .action-item.active-confused {
+            color: #fd7e14;
+        }
+
+        .action-item.type-confused:hover .action-icon,
+        .action-item.active-confused .action-icon {
             filter: grayscale(0) opacity(1) !important;
         }
 
         /* OMG: 绿色 */
-        .action-item.type-omg:hover, .action-item.active-omg { color: #82c91e; }
-        .action-item.type-omg:hover .action-icon, .action-item.active-omg .action-icon {
+        .action-item.type-omg:hover,
+        .action-item.active-omg {
+            color: #82c91e;
+        }
+
+        .action-item.type-omg:hover .action-icon,
+        .action-item.active-omg .action-icon {
             filter: grayscale(0) opacity(1) !important;
         }
 
@@ -490,16 +564,19 @@
             height: 20px;
             transition: transform 0.2s;
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s ease;
-            filter: grayscale(100%); /* 默认让图标变成灰色调，适应黑白主题 */
+            filter: grayscale(100%);
+            /* 默认让图标变成灰色调，适应黑白主题 */
             opacity: 0.7;
         }
 
         /* 激活或 hover 时的图标效果 */
         .action-item:hover .action-icon,
         .action-item[class*="active-"] .action-icon {
-            filter: grayscale(0); /* 恢复彩色 */
+            filter: grayscale(0);
+            /* 恢复彩色 */
             opacity: 1;
-            transform: scale(1.15); /* 微微放大 */
+            transform: scale(1.15);
+            /* 微微放大 */
         }
 
         /* 只有深色模式下，非激活状态的图标需要反色才能看清(如果是黑色图标) */
@@ -508,6 +585,7 @@
             opacity: 0.8;
             transition: filter 0.3s ease, opacity 0.3s ease;
         }
+
         body:not(.light-mode) .action-item:hover .action-icon,
         body:not(.light-mode) .action-item[class*="active-"] .action-icon {
             filter: invert(0) grayscale(0) brightness(1);
@@ -522,13 +600,15 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            z-index: 1000;
+            z-index: 2000;
+            /* Increased to stay above comment float bar (which is 1000) */
             display: none;
             justify-content: center;
             align-items: center;
         }
+
         .modal {
             background: var(--bg-color);
             padding: 25px;
@@ -537,6 +617,7 @@
             max-width: 500px;
             border: 1px solid var(--border-color);
         }
+
         .modal input[type="text"] {
             background: var(--bg-color);
             border: 1px solid var(--border-color);
@@ -555,11 +636,13 @@
             align-items: flex-start;
             margin-bottom: 15px;
         }
+
         .modal-left-col {
             flex: 1;
             display: flex;
             flex-direction: column;
         }
+
         .modal-right-col {
             width: 100px;
             display: flex;
@@ -567,6 +650,7 @@
             align-items: center;
             justify-content: center;
         }
+
         /* 自定义上传按钮样式 */
         .upload-avatar-btn {
             display: inline-flex;
@@ -582,10 +666,12 @@
             justify-content: center;
             transition: 0.2s;
         }
+
         .upload-avatar-btn:hover {
             background: rgba(29, 155, 240, 0.1);
             border-color: var(--primary-color);
         }
+
         /* 头像预览圆图样式 */
         .avatar-preview-circle {
             width: 90px;
@@ -596,6 +682,7 @@
             background: var(--bg-color);
             margin-top: 5px;
         }
+
         .preview-label {
             font-size: 0.8rem;
             color: var(--text-secondary);
@@ -607,13 +694,13 @@
             display: none;
             margin-top: 10px;
             position: relative;
-            width: fit-content;
         }
+
         .remove-preview {
             position: absolute;
             top: 5px;
             right: 5px;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
             color: white;
             border-radius: 50%;
             width: 24px;
@@ -624,91 +711,302 @@
             z-index: 5;
         }
 
+        /* ================= 多文件预览网格 ================= */
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .preview-grid-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            background: var(--border-color);
+        }
+
+        .preview-grid-item img,
+        .preview-grid-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .preview-grid-item .remove-item {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 14px;
+            line-height: 22px;
+            text-align: center;
+            cursor: pointer;
+            z-index: 5;
+            padding: 0;
+            transition: background 0.2s;
+        }
+
+        .preview-grid-item .remove-item:hover {
+            background: rgba(255, 0, 0, 0.8);
+        }
+
+        /* ================= 列表页媒体计数徽标 ================= */
+        .media-count-badge {
+            color: var(--primary-color);
+            font-size: 0.85rem;
+            font-weight: bold;
+            background: rgba(29, 155, 240, 0.1);
+            padding: 4px 10px;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+
+        /* ================= 详情页多媒体网格 ================= */
+        .media-grid {
+            display: grid;
+            gap: 4px;
+            margin-top: 15px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            max-height: 600px;
+        }
+
+        .media-grid.media-grid-1 {
+            grid-template-columns: 1fr;
+        }
+
+        .media-grid.media-grid-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .media-grid.media-grid-3 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        .media-grid.media-grid-3 .media-grid-item:first-child {
+            grid-row: 1 / 3;
+        }
+
+        .media-grid.media-grid-4 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        .media-grid-item {
+            overflow: hidden;
+            cursor: zoom-in;
+            position: relative;
+            background: #000;
+            min-height: 120px;
+        }
+
+        .media-grid-item img,
+        .media-grid-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .media-grid-item .grid-more-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        /* ================= Lightbox 导航 ================= */
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: none;
+            font-size: 2rem;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            z-index: 2001;
+            padding: 0;
+        }
+
+        .lightbox-nav:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .lightbox-nav.prev {
+            left: 20px;
+        }
+
+        .lightbox-nav.next {
+            right: 20px;
+        }
+
+        .lightbox-counter {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 4px 12px;
+            border-radius: 12px;
+        }
+
         /* ================= 详情页与全屏组件 (新增) ================= */
         /* 1. 全屏查看器 */
         #mediaLightbox {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
-            z-index: 2000; display: none; justify-content: center; align-items: center;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
             cursor: zoom-out;
         }
-        #lightboxContent img, #lightboxContent video { 
-            max-width: 95%; max-height: 90vh; border-radius: 4px; 
+
+        #lightboxContent img,
+        #lightboxContent video {
+            max-width: 95%;
+            max-height: 90vh;
+            border-radius: 4px;
+        }
+
+        /* ================= 搜索列表页头部 ================= */
+        .search-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            background: var(--bg-color);
+            z-index: 1001;
+            /* Set higher than comment float bar */
         }
 
         /* 2. 详情页头部 */
         .detail-header {
-            display: flex; align-items: center; gap: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
             padding: 10px 16px;
             border-bottom: 1px solid var(--border-color);
-            position: sticky; top: 0;
-            background: rgba(var(--bg-color), 0.85); /* 需配合 backdrop-filter */
-            background: var(--bg-color); /* 降级方案 */
-            z-index: 10;
+            position: sticky;
+            top: 0;
+            background: rgba(var(--bg-color), 0.85);
+            /* 需配合 backdrop-filter */
+            background: var(--bg-color);
+            /* 降级方案 */
+            z-index: 1001;
+            /* Set higher than comment float bar (1000) so it doesn't get covered on narrow heights */
         }
 
         /* 3. 返回按钮 */
         .back-btn-circle {
-            width: 36px; 
-            height: 36px; 
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            display: flex; 
-            align-items: center; 
+            display: flex;
+            align-items: center;
             justify-content: center;
-            border: none; 
-            background: transparent; 
+            border: none;
+            background: transparent;
             color: var(--text-color);
-            cursor: pointer; 
-            transition: 0.2s; 
+            cursor: pointer;
+            transition: 0.2s;
             padding: 0;
         }
-        .back-btn-circle:hover { background: rgba(29, 155, 240, 0.1); }
+
+        .back-btn-circle:hover {
+            background: rgba(29, 155, 240, 0.1);
+        }
 
         /* 4. 详情页大图 */
         .detail-media-large {
-            width: 100%; 
-            margin-top: 15px; 
+            width: 100%;
+            margin-top: 15px;
             border-radius: 16px;
-            border: 1px solid var(--border-color); 
+            border: 1px solid var(--border-color);
             overflow: hidden;
-            cursor: zoom-in; 
+            cursor: zoom-in;
             max-height: 600px;
         }
-        .detail-media-large img, .detail-media-large video {
-            width: 100%; 
-            height: 100%; 
-            object-fit: contain; 
-            display: block; 
+
+        .detail-media-large img,
+        .detail-media-large video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
             background: #000;
         }
 
         /* 5. 评论区样式 */
         .comment-box-area {
-            padding: 16px; 
+            padding: 16px;
             border-bottom: 1px solid var(--border-color);
-            display: flex; 
+            display: flex;
             gap: 12px;
         }
+
         .comment-input {
-            flex: 1; 
-            background: transparent; 
+            flex: 1;
+            background: transparent;
             border: none;
-            color: var(--text-color); 
-            font-size: 1.1rem; 
+            color: var(--text-color);
+            font-size: 1.1rem;
             outline: none;
         }
+
         .comment-item {
-            padding: 16px; 
+            padding: 16px;
             border-bottom: 1px solid var(--border-color);
-            display: flex; 
-            gap: 12px; 
+            display: flex;
+            gap: 12px;
             animation: fadeIn 0.3s ease;
         }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
 
         /* 底部悬浮评论框 */
         .comment-float-bar {
-            position: fixed;           /* 固定定位 */
-            bottom: 20px;              /* 距离视口底部 20px */
+            position: fixed;
+            /* 固定定位 */
+            bottom: 20px;
+            /* 距离视口底部 20px */
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 24px;
@@ -717,14 +1015,17 @@
             gap: 12px;
             align-items: center;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            z-index: 1000;             /* 确保在最上层 */
-            transition: background-color var(--transition-speed), 
-                        border-color var(--transition-speed), 
-                        box-shadow var(--transition-speed);
+            z-index: 1000;
+            /* 确保在最上层 */
+            transition: background-color var(--transition-speed),
+                border-color var(--transition-speed),
+                box-shadow var(--transition-speed);
             box-sizing: border-box;
             /* 移除之前的 margin 和 width:auto */
-            width: auto;                /* 宽度将由 JS 动态设置 */
-            left: 0;                    /* 占位，实际由 JS 设置 */
+            width: auto;
+            /* 宽度将由 JS 动态设置 */
+            left: 0;
+            /* 占位，实际由 JS 设置 */
         }
 
         /* 头像容器：垂直排列 */
@@ -733,7 +1034,8 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            gap: 4px;               /* 头像与昵称间距 */
+            gap: 4px;
+            /* 头像与昵称间距 */
             flex-shrink: 0;
         }
 
@@ -742,7 +1044,8 @@
             font-size: 0.8rem;
             font-weight: bold;
             color: var(--text-secondary);
-            max-width: 60px;        /* 限制宽度，防止过长 */
+            max-width: 60px;
+            /* 限制宽度，防止过长 */
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -755,8 +1058,10 @@
 
         .comment-float-bar .comment-input {
             width: 100%;
-            padding: 8px 12px 40px 12px;    /* 底部留空避免按钮遮挡 */
-            padding-right: 72px;             /* 右侧为按钮留水平空间 */
+            padding: 8px 12px 40px 12px;
+            /* 底部留空避免按钮遮挡 */
+            padding-right: 72px;
+            /* 右侧为按钮留水平空间 */
             box-sizing: border-box;
             flex: 1;
             background: var(--input-bg);
@@ -776,12 +1081,15 @@
         }
 
         .comment-float-bar .input-wrapper {
-            flex: 1;                /* 占满剩余宽度 */
-            position: relative;     /* 为按钮绝对定位提供参考 */
+            flex: 1;
+            /* 占满剩余宽度 */
+            position: relative;
+            /* 为按钮绝对定位提供参考 */
         }
 
         .comment-float-bar .comment-input::-webkit-scrollbar {
-            display: none;                /* Chrome/Safari 隐藏滚动条 */
+            display: none;
+            /* Chrome/Safari 隐藏滚动条 */
         }
 
         .comment-float-bar .comment-input:focus {
@@ -799,29 +1107,31 @@
 
         /* 为防止底部内容被固定栏遮挡，给详情容器增加底部内边距 */
         #tweetDetailView {
-            display: none;          /* 默认隐藏 */
-            flex-direction: column; /* 垂直排列 */
-            height: 100%;           /* 占满父容器高度（.main-feed 有 min-height: 100vh） */
+            display: none;
+            /* 默认隐藏 */
+            flex-direction: column;
+            /* 垂直排列 */
         }
 
         #detailContent {
-            flex: 1;                /* 内容区自动撑开剩余空间 */
-            overflow-y: auto;       /* 内容过多时滚动 */
-            padding: 0 16px;
+            /* 移除限制内部滚动的属性，让页面整体滚动 */
+            padding: 0 16px 120px 16px;
         }
 
         /* 1. 详情页的推文文本强制换行 */
         #detailContent div[style*="font-size:1.4rem"] {
             word-break: break-word;
             overflow-wrap: break-word;
-            white-space: pre-wrap;        /* 保留换行符并自动换行 */
+            white-space: pre-wrap;
+            /* 保留换行符并自动换行 */
         }
 
         /* 2. 详情页的标签容器换行（多行显示） */
         #detailContent div[style*="margin: 10px 0 15px 0"] {
             display: flex;
             flex-wrap: wrap;
-            gap: 4px 8px;                 /* 标签间距，可调整 */
+            gap: 4px 8px;
+            /* 标签间距，可调整 */
         }
 
         /* 3. 列表页的标签换行 */
@@ -832,18 +1142,27 @@
         }
 
         #tweetList .card:active {
-            background-color: rgba(128, 128, 128, 0.2); /* 半透明灰色，适应深色/浅色主题 */
-            transition: background-color 0.2s;           /* 快速过渡，增强反馈感 */
+            background-color: rgba(128, 128, 128, 0.2);
+            /* 半透明灰色，适应深色/浅色主题 */
+            transition: background-color 0.2s;
+            /* 快速过渡，增强反馈感 */
         }
 
         /* ================= 响应式 ================= */
-        @media (max-width: 850px) { 
+        @media (max-width: 850px) {
+            body.hide-sidebar-mobile .sidebar {
+                display: none !important;
+            }
+
             .wrapper {
-                flex-direction: column;  /* 恢复原有 flex 列布局 */
+                flex-direction: column;
+                /* 恢复原有 flex 列布局 */
                 gap: 20px;
             }
+
             .sidebar {
-                position: static;        /* 取消固定定位 */
+                position: static;
+                /* 取消固定定位 */
                 width: 100%;
                 max-height: none;
                 overflow-y: visible;
@@ -851,23 +1170,32 @@
                 left: auto;
                 top: auto;
             }
+
             .main-feed {
-                margin-left: 0;          /* 取消左边距 */
+                margin-left: 0;
+                /* 取消左边距 */
                 max-width: 100%;
+                width: 100%;
+                /* Ensure it spans the full width available */
                 border: none;
             }
+
             .modal-content-wrapper {
                 flex-direction: column-reverse;
                 align-items: center;
             }
+
             .modal-right-col {
                 margin-bottom: 15px;
             }
+
             .comment-float-bar {
-                left: 20px !important;      /* 强制覆盖 JS 设置的 left */
-                right: 20px !important;     /* 使用 right 控制宽度 */
-                width: auto !important;     /* 宽度自动 */
-                transform: none;            /* 避免冲突 */
+                left: 10px !important;
+                right: 10px !important;
+                width: calc(100% - 20px) !important;
+                background: rgba(var(--bg-color), 0.95) !important;
+                backdrop-filter: blur(10px);
+                transform: none;
             }
         }
     </style>
@@ -883,10 +1211,14 @@
                 <div class="modal-left-col">
                     <input type="text" id="editNickname" placeholder="昵称">
                     <input type="text" id="editBio" placeholder="简介">
-                    
-                    <input type="file" id="editAvatarInput" accept="image/*" style="display:none;" onchange="handleAvatarPreview(this)">
+
+                    <input type="file" id="editAvatarInput" accept="image/*" style="display:none;"
+                        onchange="handleAvatarPreview(this)">
                     <label for="editAvatarInput" class="upload-avatar-btn">
-                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M19 7v2.99s-1.99.01-2 0V7h-3s.01-1.99 0-2h3V2h2v3h3v2h-3zm-3 4V8h-3V5H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8h-3zM5 19l3-4 2 3 3-4 4 5H5z"/></svg>
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M19 7v2.99s-1.99.01-2 0V7h-3s.01-1.99 0-2h3V2h2v3h3v2h-3zm-3 4V8h-3V5H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8h-3zM5 19l3-4 2 3 3-4 4 5H5z" />
+                        </svg>
                         更换头像
                     </label>
                 </div>
@@ -904,8 +1236,11 @@
         </div>
     </div>
 
-    <div id="mediaLightbox" onclick="this.style.display='none'">
+    <div id="mediaLightbox" onclick="closeLightbox(event)">
+        <button class="lightbox-nav prev" onclick="event.stopPropagation(); navigateLightbox(-1)">&#8249;</button>
         <div id="lightboxContent"></div>
+        <button class="lightbox-nav next" onclick="event.stopPropagation(); navigateLightbox(1)">&#8250;</button>
+        <div id="lightboxCounter" class="lightbox-counter" style="display:none;"></div>
     </div>
 
     <div class="wrapper">
@@ -914,8 +1249,10 @@
 
             <div class="card profile-card">
                 <button class="theme-toggle-icon" onclick="toggleTheme()" id="themeBtn" title="切换主题">
-                    <img src="https://img.icons8.com/?size=100&id=45475&format=png&color=FAB005" class="icon-sun" alt="Sun">
-                    <img src="https://img.icons8.com/?size=100&id=84045&format=png&color=FAB005" class="icon-moon" alt="Moon">
+                    <img src="https://img.icons8.com/?size=100&id=45475&format=png&color=FAB005" class="icon-sun"
+                        alt="Sun">
+                    <img src="https://img.icons8.com/?size=100&id=84045&format=png&color=FAB005" class="icon-moon"
+                        alt="Moon">
                 </button>
 
                 <img src="" id="displayAvatar" class="profile-avatar-large" />
@@ -926,10 +1263,12 @@
             </div>
 
             <div class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="搜索..." onkeydown="handleSearchKey(event)">
+                <input type="text" id="searchInput" class="search-input" placeholder="搜索..."
+                    onkeydown="handleSearchKey(event)">
                 <button class="search-icon-btn" onclick="performSearch()">
                     <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M21.71 20.29l-5.01-5.01C17.54 13.68 18 11.91 18 10c0-4.41-3.59-8-8-8S2 5.59 2 10s3.59 8 8 8c1.91 0 3.68-.46 5.28-1.3l5.01 5.01c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41zM4 10c0-3.31 2.69-6 6-6s6 2.69 6 6-2.69 6-6 6-6-2.69-6-6z"/>
+                        <path
+                            d="M21.71 20.29l-5.01-5.01C17.54 13.68 18 11.91 18 10c0-4.41-3.59-8-8-8S2 5.59 2 10s3.59 8 8 8c1.91 0 3.68-.46 5.28-1.3l5.01 5.01c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41zM4 10c0-3.31 2.69-6 6-6s6 2.69 6 6-2.69 6-6 6-6-2.69-6-6z" />
                     </svg>
                 </button>
             </div>
@@ -938,7 +1277,7 @@
                 <textarea id="content" placeholder="有什么新鲜事？" rows="6"></textarea>
 
                 <div id="previewContainer">
-                    <span class="remove-preview" onclick="clearPreview()">×</span>
+                    <span class="remove-preview" onclick="clearPreview()" title="清空全部">×</span>
                     <div id="previewMedia"></div>
                 </div>
 
@@ -946,16 +1285,17 @@
 
                 <div class="toolbar">
                     <div class="tools-left">
-                        <input type="file" id="fileInput" accept="image/*,video/*" onchange="handleFileSelect()" style="display:none;">
+                        <input type="file" id="fileInput" accept="image/*,video/*" multiple
+                            onchange="handleFileSelect()" style="display:none;">
                         <label for="fileInput" class="tool-item">
-                            <img src="https://img.icons8.com/?size=100&id=6b7l1lBTegrx&format=png&color=1A1A1A" 
+                            <img src="https://img.icons8.com/?size=100&id=6b7l1lBTegrx&format=png&color=1A1A1A"
                                 alt="icon" class="theme-icon tool-icon">
                             <span>图片/视频</span>
                         </label>
 
                         <div class="tool-item">
-                            <img src="https://img.icons8.com/?size=100&id=119&format=png&color=000000" 
-                                alt="tag" class="theme-icon tool-icon">
+                            <img src="https://img.icons8.com/?size=100&id=119&format=png&color=000000" alt="tag"
+                                class="theme-icon tool-icon">
                             <input type="text" id="tags" placeholder="添加标签, 逗号隔开">
                         </div>
                     </div>
@@ -967,19 +1307,19 @@
 
         <div class="main-feed">
             <div id="tweetListView">
-                <div id="tweetList"></div> 
+                <div id="tweetList"></div>
             </div>
 
             <div id="tweetDetailView" style="display: none;">
                 <div class="detail-header">
                     <button class="back-btn-circle" onclick="goBackFromDetail()">
                         <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
                         </svg>
                     </button>
                     <span style="font-weight: 800; font-size: 1.2rem;">详情</span>
                 </div>
-                
+
                 <div id="detailContent"></div>
             </div>
 
@@ -988,7 +1328,7 @@
                 <div class="detail-header">
                     <button class="back-btn-circle" onclick="goBackFromSearch()">
                         <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
                         </svg>
                     </button>
                     <span id="searchResultTitle" style="font-weight: 800; font-size: 1.2rem;">搜索</span>
@@ -998,7 +1338,7 @@
 
         </div>
 
-         <!-- 底部悬浮评论框（默认隐藏） -->
+        <!-- 底部悬浮评论框（默认隐藏） -->
         <div id="commentFloatBar" class="comment-float-bar" style="display: none;">
             <div class="avatar-container">
                 <img src="" id="floatAvatar" class="avatar-small" alt="">
@@ -1011,11 +1351,13 @@
         </div>
 
     </div>
-        
+
     <script>
         // 脚本：API 常量、页面状态、初始化、事件处理、API 交互、DOM 渲染
         const API_BASE = 'http://localhost:5000/api';
-        let currentPostFile = null;
+        let currentPostFiles = [];
+        let lightboxItems = [];   // Lightbox 媒体列表
+        let lightboxIndex = 0;    // 当前 Lightbox 索引
         let previousView = 'list'; // 可能值: 'list', 'search'
 
         const ICONS = {
@@ -1028,14 +1370,14 @@
             comment: 'https://img.icons8.com/?size=100&id=q8JjcqIiTjN6&format=png&color=228BE6'
         };
 
-        
+
         // 动态调整 textarea 的高度
         const autoResize = (el) => {
             el.style.height = 'auto';
             el.style.height = el.scrollHeight + 'px';
         };
 
-        document.getElementById('content').addEventListener('input', function() {
+        document.getElementById('content').addEventListener('input', function () {
             autoResize(this);
         });
 
@@ -1089,6 +1431,7 @@
             document.getElementById('tweetListView').style.display = 'none';
             document.getElementById('tweetDetailView').style.display = 'none';
             document.getElementById('searchResultView').style.display = 'block';
+            document.body.classList.add('hide-sidebar-mobile');
 
             // 隐藏评论悬浮框（如果显示着）
             const floatBar = document.getElementById('commentFloatBar');
@@ -1105,7 +1448,7 @@
         // =========================
 
         // 页面加载时，初始化主题、获取用户资料和推文列表
-        window.onload = function() {
+        window.onload = function () {
             initTheme();
             fetchProfile();
             fetchTweets();
@@ -1188,14 +1531,18 @@
 
                 let mediaHtml = '';
                 let hasMedia = false;
+                const mediaList = tweet.media && tweet.media.length > 0 ? tweet.media : (tweet.mediaUrl ? [{ url: tweet.mediaUrl, type: tweet.mediaType }] : []);
 
-                if (tweet.mediaUrl) {
+                if (mediaList.length > 0) {
                     hasMedia = true;
-
-                    if (tweet.mediaType === 'video') {
-                        mediaHtml = `<video src="${tweet.mediaUrl}" controls></video>`;
+                    const first = mediaList[0];
+                    if (first.type === 'video') {
+                        mediaHtml = `<video src="${first.url}" controls></video>`;
                     } else {
-                        mediaHtml = `<img src="${tweet.mediaUrl}" loading="lazy">`;
+                        mediaHtml = `<img src="${first.url}" loading="lazy">`;
+                    }
+                    if (mediaList.length > 1) {
+                        mediaHtml += `<div class="media-count-badge">+${mediaList.length - 1} 更多...</div>`;
                     }
                 }
 
@@ -1204,7 +1551,7 @@
                 // reaction 状态与配置
                 const commentCount = tweet.comments ? tweet.comments.length : 0;
                 const reactions = tweet.reactions || { like: 0, confused: 0, omg: 0 };
-                
+
                 const reactionConfig = [
                     { type: 'like', icon: 'like', iconFilled: 'like_filled', count: reactions.like, colorClass: 'type-like' },
                     { type: 'confused', icon: 'confused', iconFilled: 'confused_filled', count: reactions.confused, colorClass: 'type-confused' },
@@ -1223,7 +1570,7 @@
                     const isActive = hasUserReacted(tweet.id, r.type);
                     const currentIcon = isActive ? ICONS[r.iconFilled] : ICONS[r.icon];
                     const activeClass = isActive ? `active-${r.type}` : '';
-                    
+
                     // 这里 onclick 绑定了 handleReaction
                     actionsHtml += `
                         <button class="action-item ${r.colorClass} ${activeClass}" 
@@ -1234,6 +1581,20 @@
                         </button>
                     `;
                 });
+
+                // 媒体补充文字生成逻辑
+                let displayContentHtml = `<div class="tweet-text">${escapeHtml(tweet.content)}</div>`;
+                if (!tweet.content && (!tweet.tags || tweet.tags.length === 0) && mediaList.length > 0) {
+                    let imgCount = 0;
+                    let vidCount = 0;
+                    mediaList.forEach(m => m.type === 'video' ? vidCount++ : imgCount++);
+
+                    let mediaTextParts = [];
+                    if (imgCount > 0) mediaTextParts.push(`${imgCount}张图片`);
+                    if (vidCount > 0) mediaTextParts.push(`${vidCount}个视频`);
+
+                    displayContentHtml = `<div class="tweet-text" style="color:#bbbbbb; font-style:italic;">上传了${mediaTextParts.join('和')}</div>`;
+                }
 
                 // 使用模板字符串分行提高可读性
                 card.innerHTML = `
@@ -1248,7 +1609,7 @@
                 <div class="tweet-body" style="display:block;"> 
                     <div style="display:flex; justify-content:space-between; gap:15px;">
                         <div class="tweet-content-left">
-                            <div class="tweet-text">${escapeHtml(tweet.content)}</div>
+                            ${displayContentHtml}
                             <div>${tagsHtml}</div>
                         </div>
                         <div class="tweet-media-right ${hasMedia ? 'active' : ''}">
@@ -1299,7 +1660,7 @@
 
                 card.onclick = (e) => {
                     if (e.target.closest('button') || e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') return;
-                    document.getElementById('searchResultView').style.display = 'none';
+                    // Let openDetail manage the transition to correctly record previousView
                     openDetail(tweet.id);
                 };
 
@@ -1308,12 +1669,18 @@
 
                 let mediaHtml = '';
                 let hasMedia = false;
-                if (tweet.mediaUrl) {
+                const mediaList = tweet.media && tweet.media.length > 0 ? tweet.media : (tweet.mediaUrl ? [{ url: tweet.mediaUrl, type: tweet.mediaType }] : []);
+
+                if (mediaList.length > 0) {
                     hasMedia = true;
-                    if (tweet.mediaType === 'video') {
-                        mediaHtml = `<video src="${tweet.mediaUrl}" controls></video>`;
+                    const first = mediaList[0];
+                    if (first.type === 'video') {
+                        mediaHtml = `<video src="${first.url}" controls></video>`;
                     } else {
-                        mediaHtml = `<img src="${tweet.mediaUrl}" loading="lazy">`;
+                        mediaHtml = `<img src="${first.url}" loading="lazy">`;
+                    }
+                    if (mediaList.length > 1) {
+                        mediaHtml += `<div class="media-count-badge">+${mediaList.length - 1} 更多...</div>`;
                     }
                 }
 
@@ -1342,12 +1709,26 @@
                     actionsHtml += `
                         <button class="action-item ${r.colorClass} ${activeClass}" 
                             onclick="handleReaction(event, '${tweet.id}', '${r.type}')" 
-                            id="btn-${tweet.id}-${r.type}">
-                            <img src="${currentIcon}" class="action-icon" id="img-${tweet.id}-${r.type}">
-                            <span id="count-${tweet.id}-${r.type}">${r.count > 0 ? r.count : ''}</span>
+                            id="search-btn-${tweet.id}-${r.type}">
+                            <img src="${currentIcon}" class="action-icon" id="search-img-${tweet.id}-${r.type}">
+                            <span id="search-count-${tweet.id}-${r.type}">${r.count > 0 ? r.count : ''}</span>
                         </button>
                     `;
                 });
+
+                // 媒体补充文字生成逻辑
+                let displayContentHtml = `<div class="tweet-text">${escapeHtml(tweet.content)}</div>`;
+                if (!tweet.content && (!tweet.tags || tweet.tags.length === 0) && mediaList.length > 0) {
+                    let imgCount = 0;
+                    let vidCount = 0;
+                    mediaList.forEach(m => m.type === 'video' ? vidCount++ : imgCount++);
+
+                    let mediaTextParts = [];
+                    if (imgCount > 0) mediaTextParts.push(`${imgCount}张图片`);
+                    if (vidCount > 0) mediaTextParts.push(`${vidCount}个视频`);
+
+                    displayContentHtml = `<div class="tweet-text" style="color:#bbbbbb; font-style:italic;">上传了${mediaTextParts.join('和')}</div>`;
+                }
 
                 card.innerHTML = `
                     <div class="tweet-header">
@@ -1360,7 +1741,7 @@
                     <div class="tweet-body" style="display:block;">
                         <div style="display:flex; justify-content:space-between; gap:15px;">
                             <div class="tweet-content-left">
-                                <div class="tweet-text">${escapeHtml(tweet.content)}</div>
+                                ${displayContentHtml}
                                 <div>${tagsHtml}</div>
                             </div>
                             <div class="tweet-media-right ${hasMedia ? 'active' : ''}">
@@ -1387,12 +1768,12 @@
             const content = document.getElementById('content').value.trim();
             const tags = document.getElementById('tags').value.trim();
 
-            if (!content && !currentPostFile) return alert("内容不能为空");
+            if (!content && currentPostFiles.length === 0) return alert("内容不能为空");
 
             const formData = new FormData();
             formData.append('content', content);
             formData.append('tags', tags);
-            if (currentPostFile) formData.append('file', currentPostFile);
+            currentPostFiles.forEach(f => formData.append('files', f));
 
             await fetch(`${API_BASE}/tweets`, { method: 'POST', body: formData });
 
@@ -1433,26 +1814,71 @@
 
         // 处理用户选择的文件（图片或视频）并创建本地预览
         function handleFileSelect() {
-            const file = document.getElementById('fileInput').files[0];
-            if (!file) return;
+            const files = Array.from(document.getElementById('fileInput').files);
+            if (!files.length) return;
 
-            currentPostFile = file;
-            document.getElementById('previewContainer').style.display = 'block';
+            // 合并已有文件，限制最多9个
+            const combined = [...currentPostFiles, ...files];
+            if (combined.length > 9) {
+                alert('最多只能上传9个文件');
+                currentPostFiles = combined.slice(0, 9);
+            } else {
+                currentPostFiles = combined;
+            }
 
-            const reader = new FileReader();
+            renderPreviewGrid();
+        }
 
-            reader.onload = e => {
-                const box = document.getElementById('previewMedia');
+        // 渲染多文件预览网格
+        function renderPreviewGrid() {
+            const container = document.getElementById('previewContainer');
+            const box = document.getElementById('previewMedia');
 
-                // 根据文件类型显示 video 或 img
-                if (file.type.startsWith('video')) {
-                    box.innerHTML = `<video src="${e.target.result}" style="width:100%; max-height:150px; border-radius:8px;"></video>`;
-                } else {
-                    box.innerHTML = `<img src="${e.target.result}" style="width:100%; max-height:150px; border-radius:8px;">`;
-                }
-            };
+            if (currentPostFiles.length === 0) {
+                container.style.display = 'none';
+                box.innerHTML = '';
+                return;
+            }
 
-            reader.readAsDataURL(file);
+            container.style.display = 'block';
+            box.innerHTML = '';
+
+            const grid = document.createElement('div');
+            grid.className = 'preview-grid';
+
+            currentPostFiles.forEach((file, idx) => {
+                const item = document.createElement('div');
+                item.className = 'preview-grid-item';
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-item';
+                removeBtn.innerHTML = '×';
+                removeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    currentPostFiles.splice(idx, 1);
+                    renderPreviewGrid();
+                };
+                item.appendChild(removeBtn);
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    if (file.type.startsWith('video')) {
+                        const vid = document.createElement('video');
+                        vid.src = e.target.result;
+                        vid.muted = true;
+                        item.appendChild(vid);
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        item.appendChild(img);
+                    }
+                };
+                reader.readAsDataURL(file);
+
+                grid.appendChild(item);
+            });
+
+            box.appendChild(grid);
         }
 
         // 处理修改头像时的实时预览
@@ -1460,7 +1886,7 @@
             const file = input.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     document.getElementById('editAvatarPreview').src = e.target.result;
                 }
                 reader.readAsDataURL(file);
@@ -1469,9 +1895,10 @@
 
         // 清除当前预览并重置文件引用
         function clearPreview() {
-            document.getElementById('fileInput').value = "";
+            document.getElementById('fileInput').value = '';
             document.getElementById('previewContainer').style.display = 'none';
-            currentPostFile = null;
+            document.getElementById('previewMedia').innerHTML = '';
+            currentPostFiles = [];
         }
 
         // 处理点击互动 (Like, Confused, OMG)
@@ -1481,12 +1908,12 @@
             const isReacted = hasUserReacted(tweetId, type);
             const action = isReacted ? 'remove' : 'add';
 
-            // 定义需要更新的前缀列表：空字符串代表列表页 ID，'detail-' 代表详情页 ID, 使两个界面的数字同步
-            const prefixes = ['', 'detail-'];
+            // 定义需要更新的前缀列表：空字符串代表列表页 ID，'detail-' 代表详情页 ID, 'search-' 代表搜索页 ID, 使三个界面的数字同步
+            const prefixes = ['', 'detail-', 'search-'];
 
             // 1. 先计算新数值 (避免在循环中重复计算导致数字错乱)
             // 尝试获取任意一个存在的计数器元素作为基准
-            const baseCountSpan = document.getElementById(`detail-count-${tweetId}-${type}`) || document.getElementById(`count-${tweetId}-${type}`);
+            const baseCountSpan = document.getElementById(`detail-count-${tweetId}-${type}`) || document.getElementById(`search-count-${tweetId}-${type}`) || document.getElementById(`count-${tweetId}-${type}`);
             let currentCount = 0;
             if (baseCountSpan) {
                 // 获取当前数字（如果是空字符串则视为 0）
@@ -1514,16 +1941,16 @@
 
                 // 只有当元素存在于当前页面时才更新 (防止报错)
                 if (countSpan && imgEl && btnEl) {
-                    
+
                     if (action === 'add') {
                         // 【增加逻辑】
                         // 增加后数字肯定大于 0，直接显示
-                        countSpan.innerText = newCount; 
-                        
+                        countSpan.innerText = newCount;
+
                         btnEl.classList.add(`active-${type}`);
                         const filledKey = type === 'like' ? 'like_filled' : (type === 'omg' ? 'omg_filled' : 'confused_filled');
                         imgEl.src = ICONS[filledKey];
-                        
+
                         // 动画效果
                         imgEl.style.transform = 'scale(1.2)';
                         setTimeout(() => imgEl.style.transform = 'scale(1)', 200);
@@ -1531,11 +1958,11 @@
                     } else {
                         // 【取消逻辑】
                         // 关键修正：判断【新数字】是否大于 0
-                        countSpan.innerText = newCount > 0 ? newCount : ''; 
+                        countSpan.innerText = newCount > 0 ? newCount : '';
 
                         btnEl.classList.remove(`active-${type}`);
                         imgEl.src = ICONS[type];
-                        
+
                         // 动画效果
                         imgEl.style.transform = 'scale(0.8)';
                         setTimeout(() => imgEl.style.transform = 'scale(1)', 200);
@@ -1557,7 +1984,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ type: type, action: action }) // 告诉后端动作
                 });
-                
+
                 if (!res.ok) {
                     console.error("Reaction failed");
                 }
@@ -1569,7 +1996,7 @@
         // ===================
         // 详情页逻辑 
         // ===================
-        
+
         // 更新悬浮框位置，使其与右侧主内容区对齐
         function updateFloatBarPosition() {
             const floatBar = document.getElementById('commentFloatBar');
@@ -1582,26 +2009,33 @@
             }
             const mainFeed = document.querySelector('.main-feed');
             if (!mainFeed) return;
+
+            // 确保在任何屏幕尺寸下（哪怕非常宽），悬浮框大小完全随从主feed尺寸，修正坐标
             const rect = mainFeed.getBoundingClientRect();
             floatBar.style.left = rect.left + 15 + 'px';
             floatBar.style.width = rect.width - 30 + 'px';
         }
 
         // 打开详情页
-        async function openDetail(id) {
+        async function openDetail(id, isRefresh = false) {
             // 确保搜索结果视图被隐藏
-            // 记录当前可见视图
-            if (document.getElementById('searchResultView').style.display === 'block') {
-                previousView = 'search';
-            } else {
-                previousView = 'list';
+            // 记录当前可见视图（如果是首次进入才记录状态）
+            if (!isRefresh) {
+                const searchView = document.getElementById('searchResultView');
+                if (searchView && searchView.style.display === 'block') {
+                    previousView = 'search';
+                } else {
+                    previousView = 'list';
+                }
             }
-            // 然后隐藏搜索结果视图（如果有）
-            document.getElementById('searchResultView').style.display = 'none';
-
-            // 1. 切换视图
+            // 然后统一隐藏旧列表视图和搜索视图
             document.getElementById('tweetListView').style.display = 'none';
+            const searchView = document.getElementById('searchResultView');
+            if (searchView) searchView.style.display = 'none';
+
+            // 1. 切换为主详情视图
             document.getElementById('tweetDetailView').style.display = 'block';
+            document.body.classList.add('hide-sidebar-mobile');
             window.scrollTo(0, 0);
 
             const container = document.getElementById('detailContent');
@@ -1627,13 +2061,13 @@
             // 移除之前绑定的事件（如果有）
             postBtn.replaceWith(postBtn.cloneNode(true));
             const newPostBtn = document.getElementById('floatPostCommentBtn');
-            newPostBtn.addEventListener('click', function() {
+            newPostBtn.addEventListener('click', function () {
                 postComment(id); // 使用当前详情页的推文 id
             });
 
             // 同时允许回车发送
             const floatInput = document.getElementById('floatCommentInput');
-            floatInput.onkeydown = function(e) {
+            floatInput.onkeydown = function (e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();  // 阻止默认的换行
                     postComment(id);
@@ -1649,15 +2083,25 @@
                 // 3. 构建标签 HTML
                 const tagsHtml = (tweet.tags || []).map(t => `<span style="color:var(--primary-color); margin-right:15px; font-size:1.1rem; cursor:pointer;">#${t}</span>`).join('');
 
-                // 4. 构建大图/视频 HTML
+                // 4. 构建多媒体网格 HTML
+                const mediaList = tweet.media && tweet.media.length > 0 ? tweet.media : (tweet.mediaUrl ? [{ url: tweet.mediaUrl, type: tweet.mediaType }] : []);
                 let mediaHtml = '';
-                if (tweet.mediaUrl) {
-                    mediaHtml = `
-                        <div class="detail-media-large" onclick="showFullMedia('${tweet.mediaUrl}', '${tweet.mediaType}')">
-                            ${tweet.mediaType === 'video' 
-                                ? `<video src="${tweet.mediaUrl}" controls autoplay muted></video>` 
-                                : `<img src="${tweet.mediaUrl}">`}
-                        </div>`;
+                if (mediaList.length > 0) {
+                    const gridCount = Math.min(mediaList.length, 4);
+                    const gridClass = `media-grid media-grid-${gridCount}`;
+                    let gridItems = '';
+                    mediaList.slice(0, 4).forEach((m, idx) => {
+                        const isLast = idx === 3 && mediaList.length > 4;
+                        const overlayHtml = isLast ? `<div class="grid-more-overlay">+${mediaList.length - 4}</div>` : '';
+                        if (m.type === 'video') {
+                            gridItems += `<div class="media-grid-item" onclick="openLightbox(${JSON.stringify(mediaList).replace(/"/g, '&quot;')}, ${idx})">
+                                <video src="${m.url}" muted></video>${overlayHtml}</div>`;
+                        } else {
+                            gridItems += `<div class="media-grid-item" onclick="openLightbox(${JSON.stringify(mediaList).replace(/"/g, '&quot;')}, ${idx})">
+                                <img src="${m.url}">${overlayHtml}</div>`;
+                        }
+                    });
+                    mediaHtml = `<div class="${gridClass}">${gridItems}</div>`;
                 }
 
                 // 5. 构建评论列表 HTML
@@ -1688,7 +2132,7 @@
                     const isActive = hasUserReacted(tweet.id, r.type);
                     const currentIcon = isActive ? ICONS[r.iconFilled] : ICONS[r.icon];
                     const activeClass = isActive ? `active-${r.type}` : '';
-                    
+
                     // ID 增加了 'detail-' 前缀
                     detailActionsHtml += `
                         <button class="action-item ${r.colorClass} ${activeClass}" 
@@ -1701,6 +2145,9 @@
                     `;
                 });
 
+                // 详情页不再显示“上传了...”占位文字，仅显示实际内容（如果有）
+                let displayContentHtml = tweet.content ? `<div style="font-size:1.4rem; margin:15px 0; line-height:1.4; white-space:pre-wrap;">${escapeHtml(tweet.content)}</div>` : '';
+
                 container.innerHTML = `
                     <div style="padding: 0 16px;">
                         <div class="tweet-header" style="padding-top:15px;">
@@ -1711,7 +2158,7 @@
                             </div>
                         </div>
 
-                        <div style="font-size:1.4rem; margin:15px 0; line-height:1.4; white-space:pre-wrap;">${escapeHtml(tweet.content)}</div>
+                        ${displayContentHtml}
 
                         <div style="margin: 10px 0 15px 0;">${tagsHtml}</div>
                         
@@ -1742,12 +2189,14 @@
             if (previousView === 'search') {
                 // 显示搜索结果视图，并重新搜索以更新数据
                 document.getElementById('searchResultView').style.display = 'block';
+                // 此时仍在 search 视图，保持 hide-sidebar-mobile 状态
                 const query = document.getElementById('searchInput').value.trim();
                 if (query) {
                     fetchSearchResults(query); // 重新搜索保持数据最新
                 }
             } else {
                 document.getElementById('tweetListView').style.display = 'block';
+                document.body.classList.remove('hide-sidebar-mobile');
                 fetchTweets(); // 刷新列表
             }
         }
@@ -1756,6 +2205,7 @@
         function goBackFromSearch() {
             document.getElementById('searchResultView').style.display = 'none';
             document.getElementById('tweetListView').style.display = 'block';
+            document.body.classList.remove('hide-sidebar-mobile');
             document.getElementById('searchResultList').innerHTML = ''; // 清空结果
             fetchTweets(); // 刷新列表
         }
@@ -1775,7 +2225,7 @@
                 // 评论成功后，重新加载详情页
                 if (res.ok) {
                     input.value = '';
-                    openDetail(id);
+                    openDetail(id, true); // 传递 true 表示刷新，不覆盖 previousView
                 } else {
                     const errorData = await res.json();
                     alert("评论失败: " + (errorData.error || "未知原因"));
@@ -1786,18 +2236,66 @@
             }
         }
 
-        // 全屏查看图片/视频
-        function showFullMedia(url, type) {
-            const lb = document.getElementById('mediaLightbox');
-            const content = document.getElementById('lightboxContent');
-            
-            if (type === 'video') {
-                content.innerHTML = `<video src="${url}" controls autoplay style="max-width:90vw; max-height:90vh"></video>`;
+        // 全屏查看图片/视频 — 多图 Lightbox
+        function openLightbox(mediaArray, startIndex) {
+            lightboxItems = mediaArray;
+            lightboxIndex = startIndex || 0;
+            renderLightbox();
+            document.getElementById('mediaLightbox').style.display = 'flex';
+
+            // 显示/隐藏导航按钮
+            const prevBtn = document.querySelector('.lightbox-nav.prev');
+            const nextBtn = document.querySelector('.lightbox-nav.next');
+            const counter = document.getElementById('lightboxCounter');
+            if (lightboxItems.length > 1) {
+                prevBtn.style.display = 'flex';
+                nextBtn.style.display = 'flex';
+                counter.style.display = 'block';
             } else {
-                content.innerHTML = `<img src="${url}">`;
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+                counter.style.display = 'none';
             }
-            lb.style.display = 'flex';
         }
+
+        function renderLightbox() {
+            const content = document.getElementById('lightboxContent');
+            const m = lightboxItems[lightboxIndex];
+            if (m.type === 'video') {
+                content.innerHTML = `<video src="${m.url}" controls autoplay style="max-width:90vw; max-height:90vh"></video>`;
+            } else {
+                content.innerHTML = `<img src="${m.url}" style="max-width:90vw; max-height:90vh">`;
+            }
+            const counter = document.getElementById('lightboxCounter');
+            counter.textContent = `${lightboxIndex + 1} / ${lightboxItems.length}`;
+        }
+
+        function navigateLightbox(dir) {
+            lightboxIndex = (lightboxIndex + dir + lightboxItems.length) % lightboxItems.length;
+            renderLightbox();
+        }
+
+        function closeLightbox(e) {
+            // 只有点击背景才关闭（不阻止内部元素点击）
+            if (e.target === document.getElementById('mediaLightbox')) {
+                document.getElementById('mediaLightbox').style.display = 'none';
+                lightboxItems = [];
+            }
+        }
+
+        // 向后兼容旧的 showFullMedia 调用
+        function showFullMedia(url, type) {
+            openLightbox([{ url, type }], 0);
+        }
+
+        // 键盘导航
+        document.addEventListener('keydown', function (e) {
+            const lb = document.getElementById('mediaLightbox');
+            if (lb.style.display !== 'flex') return;
+            if (e.key === 'ArrowLeft') navigateLightbox(-1);
+            else if (e.key === 'ArrowRight') navigateLightbox(1);
+            else if (e.key === 'Escape') { lb.style.display = 'none'; lightboxItems = []; }
+        });
 
 
         // =========================
@@ -1811,7 +2309,7 @@
             document.getElementById('editAvatarPreview').src = currentAvatarSrc;
             // 清空文件选择，以免上次选择的文件残留
             document.getElementById('editAvatarInput').value = "";
-            
+
             document.getElementById('editModal').style.display = 'flex';
         }
 

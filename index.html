@@ -132,7 +132,7 @@
         }
 
 
-        /* ================= 按钮与输入框 ================= */
+        /* ================= 按钮与图标 ================= */
         button {
             background: var(--primary-color);
             color: white;
@@ -148,7 +148,6 @@
             background: var(--primary-hover);
         }
 
-
         button.btn-outline {
             background: transparent;
             border: 1px solid var(--border-color);
@@ -159,16 +158,46 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
+        button.btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        button.btn-outline-danger {
+            background: transparent;
+            border: 1px solid #f44336;
+            color: #f44336;
+        }
+
+        button.btn-outline-danger:hover {
+            background: rgba(244, 67, 54, 0.1);
+        }
+
+        button.btn-danger:hover {
+            background: #d32f2f;
+        }
+
         body.light-mode button.btn-outline:hover {
             background: rgba(0, 0, 0, 0.05);
         }
 
+        /* 统一 Icon 过滤逻辑 (深色模式反白) */
+        .theme-icon,
+        .logout-icon {
+            filter: invert(1) brightness(2);
+            transition: filter 0.3s ease;
+        }
 
-        /* ================= 主题切换按钮 ================= */
-        .theme-toggle-icon {
+        body.light-mode .theme-icon,
+        body.light-mode .logout-icon {
+            filter: invert(0) brightness(1);
+        }
+
+
+        /* ================= 顶部控制图标 (对称布局) ================= */
+        .top-control-icon {
             position: absolute;
             top: 15px;
-            right: 15px;
             width: 32px;
             height: 32px;
             border-radius: 50%;
@@ -182,11 +211,19 @@
             overflow: hidden;
         }
 
-        .theme-toggle-icon:hover {
+        .top-control-icon:hover {
             background: rgba(29, 155, 240, 0.1);
         }
 
-        .theme-toggle-icon img {
+        .icon-left {
+            left: 15px;
+        }
+
+        .icon-right {
+            right: 15px;
+        }
+
+        .top-control-icon img {
             position: absolute;
             width: 22px;
             height: 22px;
@@ -378,14 +415,29 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-        .profile-avatar-large {
-            width: 80px;
-            height: 80px;
+        /* ================= 统一头像组件 ================= */
+        .avatar {
             border-radius: 50%;
-            margin: 10px auto 10px;
-            border: 2px solid var(--bg-color);
+            border: 1px solid var(--border-color);
             object-fit: cover;
             background: var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .avatar-large {
+            width: 80px;
+            height: 80px;
+            margin: 10px auto 10px;
+        }
+
+        .avatar-small {
+            width: 40px;
+            height: 40px;
+        }
+
+        .avatar-mini {
+            width: 32px;
+            height: 32px;
         }
 
         .profile-name {
@@ -600,10 +652,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
             z-index: 2000;
-            /* Increased to stay above comment float bar (which is 1000) */
             display: none;
             justify-content: center;
             align-items: center;
@@ -1209,8 +1260,13 @@
 
             <div class="modal-content-wrapper">
                 <div class="modal-left-col">
-                    <input type="text" id="editNickname" placeholder="昵称">
-                    <input type="text" id="editBio" placeholder="简介">
+                    <div class="form-group">
+                        <input type="text" id="editNickname" placeholder="新昵称">
+                        <div id="nicknameCheckMsg" style="font-size:0.8rem; margin-top:-5px; margin-bottom:10px;"></div>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="editBio" placeholder="简介">
+                    </div>
 
                     <input type="file" id="editAvatarInput" accept="image/*" style="display:none;"
                         onchange="handleAvatarPreview(this)">
@@ -1229,9 +1285,28 @@
                 </div>
             </div>
 
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button onclick="saveProfile()" style="flex:1">保存</button>
-                <button onclick="closeModal()" class="btn-outline" style="flex:1">取消</button>
+            <div
+                style="display:flex; flex-direction:column; gap:10px; margin-top:15px; border-top:1px solid var(--border-color); padding-top:15px;">
+                <div style="display:flex; gap:10px;">
+                    <button onclick="saveProfile()" style="flex:1" id="saveProfileBtn">保存修改</button>
+                    <button onclick="closeModal()" class="btn-outline" style="flex:1">取消</button>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="logout()" class="btn-outline-danger" style="flex:1">退出登录</button>
+                    <button onclick="confirmDeleteAccount()" class="btn-danger" style="flex:1">注销账号</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 退出登录确认弹窗 -->
+    <div id="logoutModal" class="modal-overlay">
+        <div class="modal" style="max-width:350px; text-align:center;">
+            <h2 style="margin-top:0;">退出登录？</h2>
+            <p style="color:var(--text-secondary); margin-bottom:25px;">确定要退出当前账号吗？</p>
+            <div style="display:flex; gap:15px;">
+                <button onclick="confirmLogout()" style="flex:1;">是</button>
+                <button onclick="closeLogoutModal()" class="btn-outline" style="flex:1;">否</button>
             </div>
         </div>
     </div>
@@ -1248,14 +1323,19 @@
         <div class="sidebar">
 
             <div class="card profile-card">
-                <button class="theme-toggle-icon" onclick="toggleTheme()" id="themeBtn" title="切换主题">
+                <button class="top-control-icon icon-left" onclick="logout()" title="退出登录">
+                    <img src="https://img.icons8.com/?size=100&id=100528&format=png&color=000000" class="logout-icon"
+                        alt="Logout">
+                </button>
+
+                <button class="top-control-icon icon-right" onclick="toggleTheme()" id="themeBtn" title="切换主题">
                     <img src="https://img.icons8.com/?size=100&id=45475&format=png&color=FAB005" class="icon-sun"
                         alt="Sun">
                     <img src="https://img.icons8.com/?size=100&id=84045&format=png&color=FAB005" class="icon-moon"
                         alt="Moon">
                 </button>
 
-                <img src="" id="displayAvatar" class="profile-avatar-large" />
+                <div id="profileAvatarContainer"></div>
                 <div class="profile-name" id="displayNickname">Loading...</div>
                 <div class="profile-bio" id="displayBio">...</div>
 
@@ -1360,6 +1440,96 @@
         let lightboxIndex = 0;    // 当前 Lightbox 索引
         let previousView = 'list'; // 可能值: 'list', 'search'
 
+        let currentUser = localStorage.getItem('uid');
+        let currentVisitor = localStorage.getItem('visitor_id');
+
+        if (!currentUser && !currentVisitor) {
+            window.location.href = 'login.html';
+        }
+
+        function getUserId() {
+            return currentUser || currentVisitor;
+        }
+
+        // 开启退出确认
+        function logout() {
+            document.getElementById('logoutModal').style.display = 'flex';
+        }
+
+        // 最终确认退出
+        function confirmLogout() {
+            localStorage.removeItem('uid');
+            localStorage.removeItem('visitor_id');
+            window.location.href = 'login.html';
+        }
+
+        // 取消退出
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'none';
+        }
+
+        // 统一头像组件渲染函数
+        function getAvatarHtml(url, name, sizeClass = 'avatar-small') {
+            const avatarUrl = url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=random`;
+            return `<img src="${avatarUrl}" class="avatar ${sizeClass}" alt="${name}">`;
+        }
+
+        // 防抖函数
+        function debounce(fn, delay) {
+            let timer = null;
+            return function (...args) {
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(this, args), delay);
+            };
+        }
+
+        // 校验新昵称是否重复
+        const checkNickname = debounce(async (name) => {
+            const msgEl = document.getElementById('nicknameCheckMsg');
+            const saveBtn = document.getElementById('saveProfileBtn');
+            if (!name || name === currentUser) {
+                msgEl.innerText = '';
+                saveBtn.disabled = false;
+                return;
+            }
+            if (!/^[a-zA-Z0-9_\-]+$/.test(name)) {
+                msgEl.innerText = '格式不合法';
+                msgEl.style.color = 'var(--error-color)';
+                saveBtn.disabled = true;
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/check-nickname?nickname=${encodeURIComponent(name)}`);
+                const data = await res.json();
+                if (data.available) {
+                    msgEl.innerText = '昵称可用';
+                    msgEl.style.color = '#4caf50';
+                    saveBtn.disabled = false;
+                } else {
+                    msgEl.innerText = '昵称已被占用';
+                    msgEl.style.color = '#f44336';
+                    saveBtn.disabled = true;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }, 500);
+
+        document.getElementById('editNickname').addEventListener('input', (e) => checkNickname(e.target.value));
+
+        // 注销账号
+        async function confirmDeleteAccount() {
+            if (!currentUser) return alert("访客无法注销，请直接清除浏览器缓存。");
+            const confirmed1 = confirm("确定要注销账号吗？这将永久删除您的所有发帖和评论！");
+            if (!confirmed1) return;
+            const confirmed2 = confirm("再次确认：这是一项不可逆的操作。点击确定将彻底抹除您的数据。");
+            if (!confirmed2) return;
+
+            await fetch(`${API_BASE}/profile?uid=${encodeURIComponent(currentUser)}`, { method: 'DELETE' });
+            logout();
+        }
+
         const ICONS = {
             like: 'https://img.icons8.com/?size=100&id=86721&format=png&color=FA5252',
             like_filled: 'https://img.icons8.com/?size=100&id=86747&format=png&color=FA5252',
@@ -1462,19 +1632,41 @@
         // 获取用户资料并更新页面显示，同时填充编辑 Modal 的初始值
         async function fetchProfile() {
             try {
-                const res = await fetch(`${API_BASE}/profile`);
+                const res = await fetch(`${API_BASE}/profile?uid=${encodeURIComponent(getUserId())}`);
                 const data = await res.json();
 
                 // 更新展示区
                 document.getElementById('displayNickname').innerText = data.nickname;
                 document.getElementById('displayBio').innerText = data.bio || "暂无介绍";
-                document.getElementById('displayAvatar').src = data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.nickname)}&background=random`;
+                document.getElementById('profileAvatarContainer').innerHTML = getAvatarHtml(data.avatar, data.nickname, 'avatar-large');
+
+                // 统一同步悬浮条头像 (如果有)
+                const floatAvatar = document.getElementById('floatAvatar');
+                if (floatAvatar) {
+                    floatAvatar.src = data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.nickname)}&background=random`;
+                    floatAvatar.className = 'avatar avatar-small';
+                }
+                const floatNickname = document.getElementById('floatNickname');
+                if (floatNickname) floatNickname.innerText = data.nickname;
 
                 // 填充编辑 Modal 的初始值
-                document.getElementById('editNickname').value = data.nickname;
+                document.getElementById('editNickname').value = currentUser ? data.nickname : '访客账户';
+                document.getElementById('editNickname').disabled = !currentUser;
                 document.getElementById('editBio').value = data.bio || "";
+                document.getElementById('editAvatarPreview').src = data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.nickname)}&background=random`;
+
+                // 处理侧边栏按钮逻辑
+                const btn = document.querySelector('.profile-card .btn-outline');
+                if (btn) {
+                    if (data.isVisitor) {
+                        btn.innerText = "注册/登录以保存数据";
+                        btn.onclick = () => window.location.href = 'login.html';
+                    } else {
+                        btn.innerText = "编辑资料";
+                        btn.onclick = openModal;
+                    }
+                }
             } catch (e) {
-                // 捕获并记录错误（不抛出)
                 console.error(e);
             }
         }
@@ -1599,7 +1791,7 @@
                 // 使用模板字符串分行提高可读性
                 card.innerHTML = `
                 <div class="tweet-header">
-                    <img src="${avatarSrc}" class="avatar-small">
+                    ${getAvatarHtml(tweet.userAvatar, tweet.user, 'avatar-small')}
                     <div>
                         <span class="username">${escapeHtml(tweet.user)}</span>
                         <span class="timestamp">· ${tweet.timestamp}</span>
@@ -1732,7 +1924,7 @@
 
                 card.innerHTML = `
                     <div class="tweet-header">
-                        <img src="${avatarSrc}" class="avatar-small">
+                        ${getAvatarHtml(tweet.userAvatar, tweet.user, 'avatar-small')}
                         <div>
                             <span class="username">${escapeHtml(tweet.user)}</span>
                             <span class="timestamp">· ${tweet.timestamp}</span>
@@ -1771,6 +1963,7 @@
             if (!content && currentPostFiles.length === 0) return alert("内容不能为空");
 
             const formData = new FormData();
+            formData.append('uid', getUserId());
             formData.append('content', content);
             formData.append('tags', tags);
             currentPostFiles.forEach(f => formData.append('files', f));
@@ -1791,20 +1984,37 @@
 
         // 将编辑 Modal 的资料提交到后端并刷新显示
         async function saveProfile() {
-            const nickname = document.getElementById('editNickname').value;
+            if (!currentUser) {
+                alert("访客不能修改资料，请先注册或登录。");
+                return;
+            }
+
+            const newNickname = document.getElementById('editNickname').value.trim();
             const bio = document.getElementById('editBio').value;
             const fileInput = document.getElementById('editAvatarInput');
 
             const formData = new FormData();
-            formData.append('nickname', nickname);
+            formData.append('uid', currentUser);
+            if (newNickname && newNickname !== currentUser) {
+                formData.append('newNickname', newNickname);
+            }
             formData.append('bio', bio);
             if (fileInput.files[0]) formData.append('avatar', fileInput.files[0]);
 
-            await fetch(`${API_BASE}/profile`, { method: 'POST', body: formData });
+            const res = await fetch(`${API_BASE}/profile`, { method: 'POST', body: formData });
+            const data = await res.json();
 
-            closeModal();
-            fetchProfile();
-            fetchTweets();
+            if (res.ok) {
+                if (newNickname && newNickname !== currentUser) {
+                    localStorage.setItem('uid', newNickname);
+                    currentUser = newNickname;
+                }
+                closeModal();
+                fetchProfile();
+                fetchTweets();
+            } else {
+                alert(data.error || "保存失败");
+            }
         }
 
 
@@ -2044,9 +2254,13 @@
             // 显示底部悬浮框
             const floatBar = document.getElementById('commentFloatBar');
             floatBar.style.display = 'flex';
-            // 更新头像
-            document.getElementById('floatAvatar').src = document.getElementById('displayAvatar').src;
-            // 更新昵称
+            // 更新头像与昵称
+            const profileAvatarImg = document.querySelector('#profileAvatarContainer img');
+            if (profileAvatarImg) {
+                const floatImg = document.getElementById('floatAvatar');
+                floatImg.src = profileAvatarImg.src;
+                floatImg.className = 'avatar avatar-small';
+            }
             document.getElementById('floatNickname').innerText = document.getElementById('displayNickname').innerText;
             // 清除输入框旧内容
             document.getElementById('floatCommentInput').value = '';
@@ -2107,7 +2321,7 @@
                 // 5. 构建评论列表 HTML
                 const commentsHtml = (tweet.comments || []).map(c => `
                     <div class="comment-item">
-                        <img src="${c.avatar || 'https://ui-avatars.com/api/?background=random'}" class="avatar-small">
+                        ${getAvatarHtml(c.avatar, c.user, 'avatar-small')}
                         <div style="flex:1">
                             <div style="display:flex; justify-content:space-between;">
                                 <span style="font-weight:bold">${escapeHtml(c.user)}</span>
@@ -2151,7 +2365,7 @@
                 container.innerHTML = `
                     <div style="padding: 0 16px;">
                         <div class="tweet-header" style="padding-top:15px;">
-                            <img src="${tweet.userAvatar || `https://ui-avatars.com/api/?name=${tweet.user}`}" class="avatar-small" style="width:50px; height:50px;">
+                            ${getAvatarHtml(tweet.userAvatar, tweet.user, 'avatar-small')}
                             <div style="display:flex; flex-direction:column;">
                                 <span class="username" style="font-size:1.1rem">${escapeHtml(tweet.user)}</span>
                                 <span class="timestamp">${tweet.timestamp}</span>
@@ -2220,7 +2434,7 @@
                 const res = await fetch(`${API_BASE}/tweets/${id}/comment`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text })
+                    body: JSON.stringify({ uid: getUserId(), text })
                 });
                 // 评论成功后，重新加载详情页
                 if (res.ok) {
@@ -2305,8 +2519,10 @@
         // 打开编辑 Modal，并同步当前资料到预览区域
         function openModal() {
             // 打开时同步当前的头像到预览区域，避免显示空白或旧图
-            const currentAvatarSrc = document.getElementById('displayAvatar').src;
-            document.getElementById('editAvatarPreview').src = currentAvatarSrc;
+            const profileAvatarImg = document.querySelector('#profileAvatarContainer img');
+            if (profileAvatarImg) {
+                document.getElementById('editAvatarPreview').src = profileAvatarImg.src;
+            }
             // 清空文件选择，以免上次选择的文件残留
             document.getElementById('editAvatarInput').value = "";
 

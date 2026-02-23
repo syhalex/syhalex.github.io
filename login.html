@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>登录 / 注册 - CyberSpace</title>
+    <style>
+        :root {
+            --primary-color: #1d9bf0;
+            --primary-hover: #1a8cd8;
+            --bg-color: #000000;
+            --card-bg: #000000;
+            --text-color: #e7e9ea;
+            --text-secondary: #71767b;
+            --border-color: #2f3336;
+            --input-bg: #202327;
+            --transition-speed: 0.3s;
+        }
+
+        body.light-mode {
+            --primary-color: #1d9bf0;
+            --bg-color: #ffffff;
+            --card-bg: #ffffff;
+            --text-color: #0f1419;
+            --text-secondary: #536471;
+            --border-color: #eff3f4;
+            --input-bg: #eff3f4;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: background-color var(--transition-speed),
+                color var(--transition-speed),
+                border-color var(--transition-speed);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .header {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .visitor-btn {
+            background: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .visitor-btn:hover {
+            background: rgba(29, 155, 240, 0.1);
+        }
+
+        .theme-toggle-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            position: relative;
+        }
+
+        .theme-toggle-icon:hover {
+            background: rgba(29, 155, 240, 0.1);
+        }
+
+        .theme-toggle-icon img {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .icon-moon {
+            opacity: 0;
+            transform: scale(0.5) rotate(-90deg);
+        }
+
+        .icon-sun {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+
+        body.light-mode .icon-moon {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+
+        body.light-mode .icon-sun {
+            opacity: 0;
+            transform: scale(0.5) rotate(90deg);
+        }
+
+        .auth-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--text-secondary);
+        }
+
+        .tab.active {
+            color: var(--text-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-color);
+            outline: none;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .hint {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 9999px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .error-msg {
+            color: #f91880;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <button class="visitor-btn" onclick="continueAsVisitor()">以游客身份浏览</button>
+        <button class="theme-toggle-icon" id="themeToggleBtn">
+            <img src="https://img.icons8.com/?size=100&id=45475&format=png&color=FAB005" class="icon-sun" alt="Sun">
+            <img src="https://img.icons8.com/?size=100&id=84045&format=png&color=FAB005" class="icon-moon" alt="Moon">
+        </button>
+    </div>
+
+    <div class="auth-container">
+        <div class="logo">CyberSpace</div>
+
+        <div class="tabs">
+            <div class="tab active" id="tab-login" onclick="switchTab('login')">登录</div>
+            <div class="tab" id="tab-register" onclick="switchTab('register')">注册</div>
+        </div>
+
+        <div id="form-login">
+            <div class="form-group">
+                <label>昵称</label>
+                <input type="text" id="login-username" placeholder="请输入唯一昵称">
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="login-password" placeholder="请输入密码">
+            </div>
+            <div class="error-msg" id="login-error"></div>
+            <button class="submit-btn" onclick="handleAuth('login')">登录</button>
+        </div>
+
+        <div id="form-register" style="display: none;">
+            <div class="form-group">
+                <label>昵称</label>
+                <input type="text" id="register-username" placeholder="大小写字母、数字、_、-">
+                <div class="hint">作为全局唯一标识符，且不可更改。</div>
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="register-password" placeholder="请设置密码">
+            </div>
+            <div class="error-msg" id="register-error"></div>
+            <button class="submit-btn" onclick="handleAuth('register')">注册并绑定</button>
+        </div>
+    </div>
+
+    <script>
+        // 主题切换逻辑
+        const themeBtn = document.getElementById('themeToggleBtn');
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') document.body.classList.add('light-mode');
+
+        themeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+        });
+
+        // 标签切换
+        function switchTab(mode) {
+            document.getElementById('tab-login').classList.remove('active');
+            document.getElementById('tab-register').classList.remove('active');
+            document.getElementById(`tab-${mode}`).classList.add('active');
+
+            document.getElementById('form-login').style.display = mode === 'login' ? 'block' : 'none';
+            document.getElementById('form-register').style.display = mode === 'register' ? 'block' : 'none';
+
+            document.getElementById('login-error').innerText = '';
+            document.getElementById('register-error').innerText = '';
+        }
+
+        // 以游客浏览
+        function continueAsVisitor() {
+            let visitorId = localStorage.getItem('visitor_id');
+            if (!visitorId) {
+                visitorId = 'visitor_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                localStorage.setItem('visitor_id', visitorId);
+            }
+            // Clear logged in uid if exists
+            localStorage.removeItem('uid');
+            window.location.href = 'index.html';
+        }
+
+        let isWeakWarningShown = false;
+
+        document.getElementById('login-password').addEventListener('input', () => { isWeakWarningShown = false; });
+        document.getElementById('register-password').addEventListener('input', () => { isWeakWarningShown = false; });
+
+        // 处理登录或注册
+        async function handleAuth(mode) {
+            const username = document.getElementById(`${mode}-username`).value.trim();
+            const password = document.getElementById(`${mode}-password`).value.trim();
+            const errorEl = document.getElementById(`${mode}-error`);
+
+            errorEl.innerText = '';
+
+            if (!username || !password) {
+                errorEl.innerText = '请填写完整的昵称和密码';
+                return;
+            }
+
+            if (mode === 'register') {
+                const regex = /^[a-zA-Z0-9_\-]+$/;
+                if (!regex.test(username)) {
+                    errorEl.innerText = '昵称只能包含大小写字母、数字、下划线和短横线';
+                    return;
+                }
+                const passRegex = /^[a-zA-Z0-9_]{6,16}$/;
+                if (!passRegex.test(password)) {
+                    errorEl.innerText = '密码长度需为6-16位，仅限大小写字母、数字和下划线';
+                    return;
+                }
+
+                // 只有注册时提示弱密码
+                if (/^\d+$/.test(password) && !isWeakWarningShown) {
+                    errorEl.innerText = '密码较弱，建议修改';
+                    isWeakWarningShown = true;
+                    return;
+                }
+            }
+
+            const visitorId = localStorage.getItem('visitor_id');
+            const payload = { nickname: username, password: password };
+            // 如果存在 visitorId，则传给后端使其自动转移以前的数据
+            if (visitorId) {
+                payload.visitorId = visitorId;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:5000/api/${mode}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // 登录或注册成功
+                    localStorage.setItem('uid', username);
+                    localStorage.removeItem('visitor_id'); // 转移完成，清除游客标记
+                    window.location.href = 'index.html';
+                } else {
+                    errorEl.innerText = data.error || '发生未知错误';
+                }
+            } catch (err) {
+                errorEl.innerText = '网络连接失败，请检查服务器是否运行。';
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,18 +1,22 @@
 **点击访问静态版界面: [https://syhalex.github.io/](https://syhalex.github.io/)**
 
-**当前版本 20260223-2**
+**当前版本 20260224**
+
+*这是一个史无前例的巨大更新！*
+
+*总代码行数超5000行！*
 
 **文件说明:**
 
-server.js: 后端
+*server.js*: 后端
 
-index.html: 前端
+*index.html*: 前端
 
-login.html: 前端注册/登录界面
+*login.html*: 前端注册/登录界面
 
-uploads: 媒体文件夹
+*uploads*: 媒体文件夹
 
-使用 node server.js 启动服务器时会生成数据库文件: database.sqlite
+使用 node server.js 启动服务器时会生成数据库文件: *database.sqlite*
 
 **future plans:** 
 
@@ -24,4 +28,4 @@ uploads: 媒体文件夹
 
 **issues:**
 
-不同用户之间的点赞功能出现了神秘bug...
+to be found...

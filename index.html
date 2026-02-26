@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cyber?Space v20260224</title>
+    <title>Cyber?Space v20260226</title>
 
     <style>
         /* =============== 黑色(默认) =============== */
@@ -141,7 +141,7 @@
             border-radius: 9999px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.2s;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s, opacity 0.2s;
         }
 
         button:hover {
@@ -231,23 +231,31 @@
         }
 
         .icon-moon {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+
+        .reaction-bar button:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+            /* 轻微放大 */
+        }
+
+
+
+        .icon-sun {
             opacity: 0;
             transform: scale(0.5) rotate(-90deg);
         }
 
-        .icon-sun {
-            opacity: 1;
-            transform: scale(1) rotate(0deg);
-        }
-
         body.light-mode .icon-moon {
-            opacity: 1;
-            transform: scale(1) rotate(0deg);
+            opacity: 0;
+            transform: scale(0.5) rotate(90deg);
         }
 
         body.light-mode .icon-sun {
-            opacity: 0;
-            transform: scale(0.5) rotate(90deg);
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
         }
 
 
@@ -271,12 +279,44 @@
         .search-input {
             border: none;
             background: transparent;
-            padding: 12px 40px 12px 8px;
+            padding: 12px 40px 12px 16px;
             /* 右侧留出按钮空间 */
             width: 100%;
             font-size: 0.95rem;
+            font-family: inherit;
+            font-weight: normal;
+            line-height: normal;
+            box-sizing: border-box;
             color: var(--text-color);
             outline: none;
+            position: relative;
+            z-index: 2;
+            caret-color: var(--text-color);
+        }
+
+        .search-input[contenteditable] {
+            white-space: pre;
+            overflow-x: auto;
+            overflow-y: hidden;
+            min-height: 42px;
+            padding-right: 36px;
+        }
+
+        /* 隐藏 contenteditable 的滚动条保持 input 的视觉效果 */
+        .search-input[contenteditable]::-webkit-scrollbar {
+            display: none;
+        }
+
+        .search-input[contenteditable] {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .search-input[contenteditable]:empty::before {
+            content: attr(data-placeholder);
+            color: var(--text-secondary);
+            pointer-events: none;
+            cursor: text;
         }
 
         .search-input:focus {
@@ -292,6 +332,8 @@
             border: none;
             color: var(--text-secondary);
             padding: 8px;
+            z-index: 3;
+            z-index: 3;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
@@ -882,21 +924,6 @@
             display: none;
             margin-top: 10px;
             position: relative;
-        }
-
-        .remove-preview {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            text-align: center;
-            line-height: 24px;
-            cursor: pointer;
-            z-index: 5;
         }
 
         /* ================= 多文件预览网格 ================= */
@@ -1832,10 +1859,239 @@
         .options-menu-item.danger {
             color: var(--error-color, #f44336);
         }
+
+        .clickable-tag {
+            color: var(--primary-color);
+            margin-right: 20px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .clickable-tag:hover {
+            text-decoration: underline;
+            opacity: 0.8;
+        }
+
+        /* ================= 新用户引导页 (Onboarding) ================= */
+        .onboarding-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .onboarding-modal {
+            background: var(--card-bg);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 85vh;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            /* 防止出现滚动条 */
+        }
+
+        .onboarding-image {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .onboarding-slide h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1.4rem;
+        }
+
+        .onboarding-slide p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .onboarding-slide ul {
+            padding-left: 20px;
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+
+        .onboarding-slide li {
+            margin-bottom: 8px;
+        }
+
+        .onboarding-slide code {
+            background: var(--bg-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--primary-color);
+            font-family: monospace;
+        }
+
+        .onboarding-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        .onboarding-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .onboarding-dots .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border-color);
+            transition: 0.3s;
+        }
+
+        .onboarding-dots .dot.active {
+            background: var(--primary-color);
+            width: 16px;
+            border-radius: 4px;
+        }
+
+        .onboarding-actions button {
+            margin-left: 10px;
+        }
+
+        /* 引导内容平滑过渡过渡效果 */
+        .fade-transition {
+            transition: opacity 0.2s ease;
+            opacity: 1;
+        }
+
+        .fade-transition.fade-out {
+            opacity: 0;
+        }
+
+        /* 欢迎页专属入场动画 */
+        @keyframes slideFadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .onboarding-animate-in {
+            animation: slideFadeInLeft 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+
+        /* 箭头摆动动画 */
+        @keyframes swayArrow {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            50% {
+                transform: translateX(5px);
+            }
+        }
+
+        .sway-arrow {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 8px;
+            animation: swayArrow 1.2s ease-in-out infinite;
+        }
     </style>
 </head>
 
 <body>
+    <!-- 新用户引导页 -->
+    <div id="onboardingOverlay" class="onboarding-overlay" style="display: none;">
+        <div class="onboarding-modal">
+            <!-- 欢迎界面 -->
+            <div id="onboardingWelcome" class="fade-transition"
+                style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; flex: 1; text-align: left; gap: 30px; padding: 20px 40px;">
+                <h2 class="onboarding-animate-in"
+                    style="font-size: 2.2rem; margin: 0; font-weight: 800; color: var(--text-color);">欢迎
+                </h2>
+                <p class="onboarding-animate-in"
+                    style="font-size: 1.1rem; color: var(--text-secondary); margin: -15px 0 0 0; animation-delay: 0.1s;">
+                    这是一个快速引导界面</p>
+                <div class="onboarding-animate-in" style="display: flex; gap: 20px; animation-delay: 0.2s;">
+                    <button class="btn-outline" onclick="finishOnboarding()"
+                        style="padding: 12px 30px; font-size: 1.1rem;">跳过</button>
+                    <button class="post-btn" onclick="startOnboardingSteps()"
+                        style="padding: 12px 30px; font-size: 1.1rem; display: flex; align-items: center;">
+                        开始
+                        <span class="sway-arrow">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="dynamicOnboardingContainer" class="fade-transition"
+                style="display: none; flex-direction: row; flex: 1; min-height: 0; align-items: stretch; justify-content: space-between; gap: 20px;">
+                <!-- 左侧文字 -->
+                <div
+                    style="flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: left; padding-right: 10px;">
+                    <div id="guideUserTitle"
+                        style="font-size: 1.8rem; font-weight: 800; margin-bottom: 15px; color: var(--text-color);">
+                    </div>
+                    <div id="guideUserText"
+                        style="line-height: 1.6; font-size: 1.05rem; overflow-y: auto; white-space: pre-wrap;">
+                        加载中...</div>
+                </div>
+                <!-- 右侧图片 -->
+                <img src="" class="onboarding-image" id="guideUserImg" alt="预览"
+                    style="display:none; flex: 1; min-height: 0; object-fit: contain; max-width: 50%; max-height: 100%; margin-bottom: 0;">
+            </div>
+
+            <div class="onboarding-footer fade-transition" id="onboardingFooter"
+                style="display: none; flex-shrink: 0; align-items: center; justify-content: space-between;">
+                <!-- 左侧：页码和指示点 -->
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div id="guideUserPageCount"
+                        style="font-size: 1.5rem; font-weight: bold; color: var(--text-secondary); letter-spacing: 1px; line-height: 1;">
+                        1/1
+                    </div>
+                    <div class="onboarding-dots" id="guideUserDots"
+                        style="margin: 0; display: flex; align-items: center;">
+                        <!-- 动态生成的小圆点 -->
+                    </div>
+                </div>
+                <!-- 右侧：按钮 -->
+                <div class="onboarding-actions" style="margin: 0;">
+                    <button id="guideUserPrevBtn" class="btn-outline" style="visibility:hidden;"
+                        onclick="changeOnboardingSlide(-1)">上一步</button>
+                    <button id="guideUserNextBtn" class="post-btn" onclick="changeOnboardingSlide(1)">下一页</button>
+                    <button id="guideUserSkipBtn" class="btn-outline" style="margin-left: 10px;"
+                        onclick="finishOnboarding()">跳过</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="modal-overlay" id="editModal">
         <div class="modal" style="position:relative;">
@@ -1917,6 +2173,17 @@
 
         <div class="sidebar">
 
+            <div class="search-container" onclick="document.getElementById('searchInput').focus()">
+                <div id="searchInput" class="search-input" contenteditable="true" data-placeholder="搜索..."
+                    onkeydown="handleSearchKey(event)"></div>
+                <button class="search-icon-btn" onclick="performSearch()">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M21.71 20.29l-5.01-5.01C17.54 13.68 18 11.91 18 10c0-4.41-3.59-8-8-8S2 5.59 2 10s3.59 8 8 8c1.91 0 3.68-.46 5.28-1.3l5.01 5.01c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41zM4 10c0-3.31 2.69-6 6-6s6 2.69 6 6-2.69 6-6 6-6-2.69-6-6z" />
+                    </svg>
+                </button>
+            </div>
+
             <div class="card profile-card">
                 <button class="top-control-icon icon-right" onclick="toggleTheme()" id="themeBtn" title="切换主题">
                     <img src="https://img.icons8.com/?size=100&id=45475&format=png&color=FAB005" class="icon-sun"
@@ -1929,10 +2196,11 @@
                 <div class="profile-name" id="displayNickname">Loading...</div>
                 <div class="profile-bio" id="displayBio">...</div>
 
-                <button class="btn-outline" onclick="openModal()" style="width:100%">编辑资料</button>
+                <button class="btn-outline" id="editProfileBtn" onclick="openModal()" style="width:100%">编辑资料</button>
 
-                <div class="sidebar-bottom-row">
-                    <button class="btn-outline profile-page-btn" onclick="openProfilePage()">个人主页</button>
+                <div class="sidebar-bottom-row" id="sidebarBottomRow">
+                    <button class="btn-outline profile-page-btn" id="profilePageBtn"
+                        onclick="openProfilePage()">个人主页</button>
                     <button class="logout-circle-btn" onclick="logout()" title="退出登录">
                         <img src="https://img.icons8.com/?size=100&id=24337&format=png&color=000000" class="logout-icon"
                             alt="Logout">
@@ -1940,22 +2208,10 @@
                 </div>
             </div>
 
-            <div class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="搜索..."
-                    onkeydown="handleSearchKey(event)">
-                <button class="search-icon-btn" onclick="performSearch()">
-                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                        <path
-                            d="M21.71 20.29l-5.01-5.01C17.54 13.68 18 11.91 18 10c0-4.41-3.59-8-8-8S2 5.59 2 10s3.59 8 8 8c1.91 0 3.68-.46 5.28-1.3l5.01 5.01c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41zM4 10c0-3.31 2.69-6 6-6s6 2.69 6 6-2.69 6-6 6-6-2.69-6-6z" />
-                    </svg>
-                </button>
-            </div>
-
-            <div class="card">
+            <div class="card" id="postCard">
                 <textarea id="content" placeholder="有什么新鲜事？" rows="6"></textarea>
 
                 <div id="previewContainer">
-                    <span class="remove-preview" onclick="clearPreview()" title="清空全部">×</span>
                     <div id="previewMedia"></div>
                 </div>
 
@@ -1971,11 +2227,11 @@
                             <span>图片/视频</span>
                         </label>
 
-                        <div class="tool-item">
+                        <label for="tags" class="tool-item">
                             <img src="https://img.icons8.com/?size=100&id=119&format=png&color=000000" alt="tag"
                                 class="theme-icon tool-icon">
                             <input type="text" id="tags" placeholder="添加标签, 逗号隔开">
-                        </div>
+                        </label>
                     </div>
 
                     <button onclick="postTweet()" class="post-btn" id="mainPostBtn">发布</button>
@@ -2169,7 +2425,7 @@
 
         // 注销账号
         function confirmDeleteAccount() {
-            if (!currentUser) return alert("访客无法注销，请直接清除浏览器缓存。");
+            if (!currentUser) return alert("请先登录账号。");
             document.getElementById('deleteAccountModal').style.display = 'flex';
         }
 
@@ -2240,31 +2496,253 @@
         // 回车触发搜索
         function handleSearchKey(event) {
             if (event.key === 'Enter') {
+                event.preventDefault(); // 阻止 contenteditable 产生换行
                 performSearch();
             }
         }
 
-        // 执行搜索：获取输入框的值并调用 fetchTweets 进行搜索
+        // ======= 光标位置保护 ======
+        // 判断光标是否位于开头连续的 tag 保护区内部（在此区域禁止增添文字）
+        function isCaretInProtectedZone(input) {
+            const text = input.innerText.replace(/\n$/, '');
+            const tagsMatch = text.match(/^(\s*(?:#\S+\s*)+)/);
+            if (tagsMatch) {
+                const tagZoneEnd = tagsMatch[0].replace(/\s+$/, '').length;
+                const pos = saveCaretPosition(input);
+                return pos < tagZoneEnd;
+            }
+            return false;
+        }
+
+        // 禁止在蓝色标签内部或左侧输入普通文字
+        document.getElementById('searchInput').addEventListener('keydown', function (event) {
+            const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Enter'];
+            if (allowedKeys.includes(event.key) || event.ctrlKey || event.metaKey) return;
+            if (isCaretInProtectedZone(this)) {
+                event.preventDefault();
+            }
+        });
+
+        // 防止中文输入法在保护区前输入
+        document.getElementById('searchInput').addEventListener('compositionstart', function (event) {
+            if (isCaretInProtectedZone(this)) {
+                this.blur();
+                setTimeout(() => this.focus(), 0);
+            }
+        });
+
+        // 防止粘贴或拖拽在保护区内输入
+        ['paste', 'drop'].forEach(evt => {
+            document.getElementById('searchInput').addEventListener(evt, function (event) {
+                if (isCaretInProtectedZone(this)) {
+                    event.preventDefault();
+                }
+            });
+        });
+
+        // 光标位置保存与恢复
+        function saveCaretPosition(el) {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) return 0;
+            const range = selection.getRangeAt(0);
+            const preCaretRange = range.cloneRange();
+            preCaretRange.selectNodeContents(el);
+            preCaretRange.setEnd(range.endContainer, range.endOffset);
+            return preCaretRange.toString().length;
+        }
+
+        function restoreCaretPosition(el, position) {
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.setStart(el, 0);
+            range.collapse(true);
+
+            const nodeStack = [el];
+            let node, foundStart = false;
+            let charIndex = 0;
+
+            while (!foundStart && (node = nodeStack.pop())) {
+                if (node.nodeType === 3) {
+                    const nextCharIndex = charIndex + node.length;
+                    if (position >= charIndex && position <= nextCharIndex) {
+                        range.setStart(node, position - charIndex);
+                        foundStart = true;
+                    }
+                    charIndex = nextCharIndex;
+                } else {
+                    let i = node.childNodes.length;
+                    while (i--) {
+                        nodeStack.push(node.childNodes[i]);
+                    }
+                }
+            }
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+
+        // 实时 \tag → # 替换和蓝色标签渲染
+        document.getElementById('searchInput').addEventListener('input', function () {
+            const input = this;
+            let text = input.innerText.replace(/\n$/, ''); // 获取纯文本
+            const hasTagsOrPrefix = text.includes('\\tag') || /#/.test(text);
+
+            if (!hasTagsOrPrefix && !input.innerHTML.includes('<span')) {
+                // 如果即没有 tag 又没有高亮元素，不必重新渲染，节省性能
+                return;
+            }
+
+            let pos = saveCaretPosition(input);
+
+            // 替换 \tag 为 #
+            const tagRegex = /(^|\s)\\tag/g;
+            if (tagRegex.test(text)) {
+                tagRegex.lastIndex = 0;
+                const beforeText = text.substring(0, pos);
+                const matchCountBeforePos = (beforeText.match(/(^|\s)\\tag/g) || []).length;
+                text = text.replace(/(^|\s)\\tag/g, '$1#');
+                pos -= matchCountBeforePos * 3;
+            }
+
+            // --- 新增：强制标签自动移动到左侧（仅当标签已完成即后面跟空格时，或者不在最末尾的残余片段） ---
+            let trailingTag = "";
+            let textToProcess = text;
+            const trailingTagMatch = text.match(/(^|\s)(#\S+)$/);
+            if (trailingTagMatch) {
+                trailingTag = trailingTagMatch[2];
+                textToProcess = text.substring(0, text.length - trailingTag.length);
+            }
+
+            const parts = textToProcess.split(/((?:^|\s)#\S+)/g);
+            let tags = [];
+            let normalText = "";
+            parts.forEach(part => {
+                if (/(?:^|\s)#\S+/.test(part)) {
+                    tags.push(part.trim());
+                } else {
+                    normalText += part;
+                }
+            });
+
+            tags = tags.filter(t => t);
+
+            let hasTrailingSpace = /\s$/.test(textToProcess);
+            normalText = normalText.replace(/\s+/g, ' ');
+            if (normalText.startsWith(' ')) normalText = normalText.substring(1);
+            normalText = normalText.trimEnd();
+
+            let expectedText = tags.join(' ');
+            if (expectedText && normalText) {
+                expectedText += ' ' + normalText;
+            } else if (!expectedText) {
+                expectedText = normalText;
+            }
+
+            if (trailingTag) {
+                if (expectedText) {
+                    if (trailingTagMatch[1]) expectedText += ' ';
+                    expectedText += trailingTag;
+                } else {
+                    expectedText = trailingTag;
+                }
+            } else {
+                if (hasTrailingSpace && expectedText) {
+                    expectedText += ' ';
+                }
+            }
+
+            const normalize = s => s.replace(/\s+/g, ' ').trim();
+            if (normalize(text) !== normalize(expectedText)) {
+                text = expectedText;
+                pos = text.length; // 重排后光标跳到最后，保障输入顺畅
+            }
+            // ------------------------------------
+
+            // 如果没有 # 返回纯文本
+            if (!/#\S/.test(text)) {
+                if (input.innerHTML !== text) {
+                    input.innerHTML = escapeHtml(text).replace(/ /g, '&nbsp;');
+                    restoreCaretPosition(input, pos);
+                }
+                return;
+            }
+
+            // 更新 HTML
+            // 此时保证所有的 tags 都在前面
+            const finalParts = text.split(/((?:^|\s)#\S+)/g);
+            let html = '';
+            finalParts.forEach(part => {
+                const trimmed = part.trimStart();
+                const leadingSpaces = part.substring(0, part.length - trimmed.length);
+
+                if (trimmed.startsWith('#')) {
+                    html += `<span style="color:var(--text-color);">${leadingSpaces.replace(/ /g, '&nbsp;')}</span><span style="color:var(--primary-color);">${escapeHtml(trimmed)}</span>`;
+                } else if (part.length > 0) {
+                    html += `<span>${escapeHtml(part).replace(/ /g, '&nbsp;')}</span>`;
+                }
+            });
+
+            input.innerHTML = html;
+            restoreCaretPosition(input, pos);
+        });
+
+        // 执行搜索
         async function performSearch() {
-            const query = document.getElementById('searchInput').value.trim();
-            if (!query) return;
+            const fullQuery = document.getElementById('searchInput').innerText.trim().replace(/\n$/, '');
+            if (!fullQuery) return;
+
+            // 提取 #tag 和普通文本
+            // 只提取独立单词开头的 #tag
+            const tagMatches = fullQuery.match(/(?:^|\s)#(\S+)/g);
+            let tagList = [];
+            let textQuery = fullQuery;
+
+            if (tagMatches) {
+                tagList = tagMatches.map(t => t.trim().substring(1)).filter(t => t);
+                textQuery = fullQuery.replace(/(?:^|\s)#\S+/g, '').trim();
+            }
 
             // 更新标题
-            document.getElementById('searchResultTitle').innerText = `"${query}"的搜索结果`;
+            let title = '';
+            if (textQuery && tagList.length > 0) {
+                title = `"${textQuery}" + 标签: ${tagList.map(t => `#${t}`).join(' ')} 的搜索结果`;
+            } else if (tagList.length > 0) {
+                title = `搜索标签: ${tagList.map(t => `#${t}`).join(' ')}`;
+            } else {
+                title = `"${textQuery}"的搜索结果`;
+            }
+            document.getElementById('searchResultTitle').innerText = title;
 
-            // 隐藏列表和详情，显示搜索结果视图
             document.getElementById('tweetListView').style.display = 'none';
             document.getElementById('tweetDetailView').style.display = 'none';
+            document.getElementById('profilePageView').style.display = 'none';
             document.getElementById('searchResultView').style.display = 'block';
             document.body.classList.add('hide-sidebar-mobile');
 
-            // 隐藏评论悬浮框（如果显示着）
             const floatBar = document.getElementById('commentFloatBar');
             if (floatBar) floatBar.style.display = 'none';
             window.removeEventListener('resize', updateFloatBarPosition);
 
-            // 获取搜索结果并渲染
-            await fetchSearchResults(query);
+            await fetchSearchResults(textQuery, tagList);
+        }
+
+        // 获取搜索结果
+        async function fetchSearchResults(query, tagList = []) {
+            const listContainer = document.getElementById('searchResultList');
+            listContainer.innerHTML = '<div style="padding:40px; text-align:center;">加载中...</div>';
+
+            try {
+                let url = `${API_BASE}/tweets?`;
+                if (query) url += `search=${encodeURIComponent(query)}&`;
+                if (tagList && tagList.length > 0) url += `tags=${encodeURIComponent(tagList.join(','))}`;
+
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('搜索失败');
+                const tweets = await res.json();
+                renderSearchResults(tweets);
+            } catch (e) {
+                console.error(e);
+                listContainer.innerHTML = '<div style="padding:40px; text-align:center; color:red;">加载失败</div>';
+            }
         }
 
 
@@ -2298,11 +2776,17 @@
             await syncBookmarks();
             fetchTweets();
 
-            // 访客隐藏退出按钮
+            // 访客隐藏部分UI
             const uid = getUserId();
             if (!uid || uid.startsWith('visitor_')) {
                 const logoutBtn = document.querySelector('.logout-circle-btn');
                 if (logoutBtn) logoutBtn.style.display = 'none';
+                const profilePageBtn = document.getElementById('profilePageBtn');
+                if (profilePageBtn) profilePageBtn.style.display = 'none';
+                const postCard = document.getElementById('postCard');
+                if (postCard) postCard.style.display = 'none';
+                const displayBio = document.getElementById('displayBio');
+                if (displayBio) displayBio.style.display = 'none';
             }
         };
 
@@ -2332,22 +2816,60 @@
                 if (floatNickname) floatNickname.innerText = data.nickname;
 
                 // 填充编辑 Modal 的初始值
-                document.getElementById('editNickname').value = currentUser ? data.nickname : '访客账户';
+                document.getElementById('editNickname').value = currentUser ? data.nickname : '游客账户';
                 document.getElementById('editNickname').disabled = !currentUser;
                 document.getElementById('editBio').value = (data.bio || "").replace(/\n/g, '\\n');
                 document.getElementById('editAvatarPreview').src = data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.nickname)}&background=1d9bf0&color=fff`;
 
                 // 处理侧边栏按钮逻辑
-                const btn = document.querySelector('.profile-card .btn-outline');
+                const btn = document.getElementById('editProfileBtn');
+                const themeBtn = document.getElementById('themeBtn');
+                const profileCard = document.querySelector('.profile-card');
+
                 if (btn) {
                     if (data.isVisitor) {
-                        btn.innerText = "注册/登录以保存数据";
+                        // 游客侧边栏弹性布局（左边登录按钮，右边主题按钮）
+                        profileCard.style.display = 'flex';
+                        profileCard.style.alignItems = 'center';
+                        profileCard.style.justifyContent = 'space-between';
+
+                        btn.innerText = "登录/注册";
                         btn.onclick = () => window.location.href = 'login.html';
+                        btn.style.marginTop = '0';
+                        btn.style.width = '75%';
+                        btn.style.order = '1'; // 确保在左侧
+
+                        if (themeBtn) {
+                            themeBtn.style.position = 'static';
+                            themeBtn.style.order = '2'; // 确保在右侧
+                        }
+
+                        document.getElementById('profileAvatarContainer').style.display = 'none';
+                        document.getElementById('displayNickname').style.display = 'none';
+                        document.getElementById('displayBio').style.display = 'none';
+                        const bottomRow = document.getElementById('sidebarBottomRow');
+                        if (bottomRow) bottomRow.style.display = 'none';
                     } else {
+                        // 还原登录用户的常态布局
+                        profileCard.style.display = 'block';
+
                         btn.innerText = "编辑资料";
                         btn.onclick = openModal;
+                        btn.style.marginTop = '0';
+                        btn.style.width = '100%';
+
+                        if (themeBtn) {
+                            themeBtn.style.position = 'absolute';
+                        }
+
+                        document.getElementById('profileAvatarContainer').style.display = 'block';
+                        document.getElementById('displayNickname').style.display = 'block';
+                        document.getElementById('displayBio').style.display = 'block';
+                        const bottomRow = document.getElementById('sidebarBottomRow');
+                        if (bottomRow) bottomRow.style.display = 'flex';
                     }
                 }
+
             } catch (e) {
                 console.error(e);
             }
@@ -2428,7 +2950,7 @@
                     }
                 }
 
-                const tagsHtml = (tweet.tags || []).map(t => `<span style="color:var(--primary-color); margin-right:20px;">#${t}</span>`).join('');
+                const tagsHtml = (tweet.tags || []).map(t => `<span class="clickable-tag" onclick="event.stopPropagation(); searchByTag('${escapeHtml(t)}')">#${escapeHtml(t)}</span>`).join('');
 
                 // reaction 状态与配置
                 const commentCount = tweet.comments ? tweet.comments.length : 0;
@@ -2584,9 +3106,9 @@
                     }
                 }
 
-                const tagsHtml = (tweet.tags || []).map(t => `<span style="color:var(--primary-color); margin-right:20px;">#${t}</span>`).join('');
+                const tagsHtml = (tweet.tags || []).map(t => `<span class="clickable-tag" onclick="event.stopPropagation(); searchByTag('${escapeHtml(t)}')">#${escapeHtml(t)}</span>`).join('');
 
-                const commentCount = tweet.comments ? tweet.comments.length : 0;
+                const commentCount = (tweet.comments || []).length;
                 const reactions = tweet.reactions || { like: 0, confused: 0, omg: 0 };
 
                 const reactionConfig = [
@@ -2684,6 +3206,12 @@
 
         // 发布推文（包含可选文件）
         async function postTweet() {
+            const uid = getUserId();
+            if (!uid || uid.startsWith('visitor_')) {
+                showToast("请登录后操作");
+                return;
+            }
+
             const content = document.getElementById('content').value.trim();
             const tags = document.getElementById('tags').value.trim();
 
@@ -2866,10 +3394,7 @@
 
         // 将编辑 Modal 的资料提交到后端并刷新显示
         async function saveProfile() {
-            if (!currentUser) {
-                alert("访客不能修改资料，请先注册或登录。");
-                return;
-            }
+
 
             const newNickname = document.getElementById('editNickname').value.trim();
             const bio = document.getElementById('editBio').value.replace(/\\n/g, '\n');
@@ -3202,7 +3727,7 @@
                 const tweet = await res.json();
 
                 // 3. 构建标签 HTML
-                const tagsHtml = (tweet.tags || []).map(t => `<span style="color:var(--primary-color); margin-right:15px; font-size:1.1rem; cursor:pointer;">#${t}</span>`).join('');
+                const tagsHtml = (tweet.tags || []).map(t => `<span class="clickable-tag" style="font-size:1.1rem;" onclick="event.stopPropagation(); searchByTag('${escapeHtml(t)}')">#${escapeHtml(t)}</span>`).join('');
 
                 // 4. 构建多媒体网格 HTML
                 const mediaList = tweet.media && tweet.media.length > 0 ? tweet.media : (tweet.mediaUrl ? [{ url: tweet.mediaUrl, type: tweet.mediaType }] : []);
@@ -3358,6 +3883,12 @@
 
         // 发送评论
         async function postComment(id) {
+            const uid = getUserId();
+            if (!uid || uid.startsWith('visitor_')) {
+                showToast("请登录后操作");
+                return;
+            }
+
             const input = document.getElementById(`floatCommentInput`);
             const text = input.value.trim();
             if (!text) return;
@@ -3775,7 +4306,7 @@
         function openProfilePage() {
             const uid = getUserId();
             if (!uid || uid.startsWith('visitor_')) {
-                showToast('请先登录');
+                showToast('请登录后操作');
                 return;
             }
             // 隐藏其他视图
@@ -3922,7 +4453,7 @@
                 }
 
                 contentDiv.innerHTML = tweets.map(tweet => {
-                    const tagsHtml = (tweet.tags || []).map(t => `<span style="color:var(--primary-color); margin-right:20px;">#${t}</span>`).join('');
+                    const tagsHtml = (tweet.tags || []).map(t => `<span class="clickable-tag" onclick="event.stopPropagation(); searchByTag('${escapeHtml(t)}')">#${escapeHtml(t)}</span>`).join('');
                     const commentCount = tweet.comments ? tweet.comments.length : 0;
                     const reactions = tweet.reactions || { like: 0, confused: 0, omg: 0 };
 
@@ -4051,7 +4582,7 @@
                 contentDiv.innerHTML = '<div style="padding:20px; color:red;">加载失败</div>';
             }
         }
-        // 辅助提取时间来排序
+        //辅助提取时间来排序
         function extractSortableTime(tsStr) {
             if (!tsStr) return 0;
             // 处理 "编于: YYYY/M/D HH:mm:ss" 或 "YYYY/MM/DD HH:mm:ss"
@@ -4075,6 +4606,232 @@
                 el.innerText = `最后编辑于 ${editTimeStr}`;
             }
         }
+
+        // =========================
+        // 新用户引导页 (Onboarding) - 动态从后端获取
+        // =========================
+
+        let currentOnboardingSlide = 0;
+        let onboardingSteps = [];
+
+        async function fetchGuideData() {
+            try {
+                const res = await fetch(`${API_BASE}/guide`);
+                const data = await res.json();
+                onboardingSteps = data.steps || [];
+            } catch (err) {
+                console.error("无法加载新手引导", err);
+            }
+        }
+
+        // 页面初始化时检查
+        async function checkOnboarding() {
+            const uid = getUserId();
+            if (!uid) return;
+
+            const storageKey = 'hasSeenOnboarding_' + uid;
+
+            if (!localStorage.getItem(storageKey)) {
+                await fetchGuideData();
+                if (onboardingSteps.length > 0) {
+                    // 预加载所有幻灯片图片，避免切换时因网络请求导致拉伸动画卡顿
+                    onboardingSteps.forEach(step => {
+                        if (step.imageUrl) {
+                            const preloadImg = new Image();
+                            preloadImg.src = step.imageUrl;
+                        }
+                    });
+
+                    // 初始显示欢迎界面
+                    document.getElementById('onboardingWelcome').style.display = 'flex';
+                    document.getElementById('dynamicOnboardingContainer').style.display = 'none';
+                    document.getElementById('onboardingFooter').style.display = 'none';
+                    document.getElementById('onboardingOverlay').style.display = 'flex';
+                } else {
+                    // 如果后端没有配置引导，直接标记完成
+                    finishOnboarding(storageKey);
+                }
+            }
+        }
+
+        function startOnboardingSteps() {
+            const welcome = document.getElementById('onboardingWelcome');
+            const container = document.getElementById('dynamicOnboardingContainer');
+            const footer = document.getElementById('onboardingFooter');
+            const modal = document.querySelector('.onboarding-modal');
+
+            // 1. 记录并固定旧高度，准备执行平滑拉伸
+            const oldHeight = modal.getBoundingClientRect().height;
+            modal.style.height = oldHeight + 'px';
+            modal.style.transition = 'height 0.2s ease';
+
+            // 欢迎页淡出
+            welcome.classList.add('fade-out');
+
+            setTimeout(() => {
+                // 2. 隐藏欢迎页，预备并渲染新内容
+                welcome.style.display = 'none';
+                welcome.classList.remove('fade-out'); // 重置状态
+
+                currentOnboardingSlide = 0;
+                renderOnboardingSlide();
+
+                // 3. 切换显示 dynamic container 和 footer，但让它们初始淡出
+                container.style.display = 'flex';
+                footer.style.display = 'flex';
+                container.classList.add('fade-out');
+                footer.classList.add('fade-out');
+
+                // 4. 强制重排后计算新高度并执行动画
+                modal.style.height = 'auto';
+                const newHeight = modal.getBoundingClientRect().height;
+                modal.style.height = oldHeight + 'px';
+                modal.offsetHeight; // force reflow
+                modal.style.height = newHeight + 'px';
+
+                // 5. 内容淡入
+                setTimeout(() => {
+                    container.classList.remove('fade-out');
+                    footer.classList.remove('fade-out');
+                }, 50);
+
+                // 6. 动画结束后，清除内联高度样式
+                setTimeout(() => {
+                    modal.style.height = '';
+                    modal.style.transition = '';
+                }, 200);
+            }, 200);
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(checkOnboarding, 500); // 延迟半秒弹出，体验更佳
+        });
+
+        // 移除原有的 openBeginnerGuide 手动触发函数
+
+        function renderOnboardingSlide() {
+            if (onboardingSteps.length === 0) return;
+            const step = onboardingSteps[currentOnboardingSlide];
+
+            const imgEl = document.getElementById('guideUserImg');
+            const titleEl = document.getElementById('guideUserTitle');
+            const textEl = document.getElementById('guideUserText');
+
+            if (step.imageUrl) {
+                imgEl.src = step.imageUrl;
+                imgEl.style.display = 'block';
+            } else {
+                imgEl.style.display = 'none';
+            }
+
+            if (titleEl) {
+                titleEl.textContent = step.title || '';
+                titleEl.style.display = step.title ? 'block' : 'none';
+            }
+            textEl.textContent = step.text || '（暂无文字描述）';
+
+            // 渲染圆点
+            const dotsContainer = document.getElementById('guideUserDots');
+            dotsContainer.innerHTML = '';
+            for (let i = 0; i < onboardingSteps.length; i++) {
+                const dot = document.createElement('div');
+                dot.style.cssText = `width: 8px; height: 8px; border-radius: 50%; background: var(--border-color); transition: 0.3s;`;
+                if (i === currentOnboardingSlide) {
+                    dot.style.background = 'var(--primary-color)';
+                    dot.style.width = '20px';
+                    dot.style.borderRadius = '4px';
+                }
+                dotsContainer.appendChild(dot);
+            }
+
+            // 更新页码 x/y
+            const pageCountEl = document.getElementById('guideUserPageCount');
+            if (pageCountEl) {
+                pageCountEl.textContent = `${currentOnboardingSlide + 1}/${onboardingSteps.length}`;
+            }
+
+            document.getElementById('guideUserPrevBtn').style.visibility = currentOnboardingSlide === 0 ? 'hidden' : 'visible';
+
+            const nextBtn = document.getElementById('guideUserNextBtn');
+            const skipBtn = document.getElementById('guideUserSkipBtn');
+            if (currentOnboardingSlide === onboardingSteps.length - 1) {
+                nextBtn.textContent = '完成';
+                skipBtn.style.display = 'none';
+            } else {
+                nextBtn.textContent = '下一页';
+                skipBtn.style.display = 'inline-block';
+            }
+        }
+
+        function changeOnboardingSlide(direction) {
+            const nextSlideIndex = currentOnboardingSlide + direction;
+
+            if (nextSlideIndex >= onboardingSteps.length) {
+                // 如果是最后一步触发的关闭，则使用对应特定的身份key记录
+                const storageKey = currentUser && currentUser.startsWith('visitor_') ?
+                    'hasSeenOnboarding_visitor' :
+                    (currentUser ? 'hasSeenOnboarding_' + currentUser : 'hasSeenOnboarding_guest');
+                finishOnboarding(storageKey);
+                return;
+            }
+
+            // 平滑过渡效果
+            const container = document.getElementById('dynamicOnboardingContainer');
+            const modal = document.querySelector('.onboarding-modal');
+
+            // 1. 记录并固定旧高度，准备执行高度拉伸动画
+            const oldHeight = modal.getBoundingClientRect().height;
+            modal.style.height = oldHeight + 'px';
+            modal.style.transition = 'height 0.2s ease';
+
+            container.classList.add('fade-out');
+
+            setTimeout(() => {
+                if (nextSlideIndex < 0) {
+                    currentOnboardingSlide = 0;
+                } else {
+                    currentOnboardingSlide = nextSlideIndex;
+                }
+
+                // 2. 临时恢复 auto 以渲染新内容并测量新高度
+                modal.style.height = 'auto';
+                renderOnboardingSlide();
+                const newHeight = modal.getBoundingClientRect().height;
+
+                // 3. 恢复为旧高度，强制浏览器重排
+                modal.style.height = oldHeight + 'px';
+                modal.offsetHeight; // force reflow
+
+                // 4. 将高度设置为新的目标高度，触发 CSS 过渡
+                modal.style.height = newHeight + 'px';
+
+                // 内容淡入
+                container.classList.remove('fade-out');
+
+                // 5. 动画结束后，清除内联样式，保持响应式
+                setTimeout(() => {
+                    modal.style.height = '';
+                    modal.style.transition = '';
+                }, 200);
+            }, 200); // 与 CSS 中的 0.2s 对应
+        }
+
+        function finishOnboarding() {
+            const uid = getUserId();
+            if (uid) {
+                localStorage.setItem('hasSeenOnboarding_' + uid, 'true');
+            }
+
+            // 淡出效果关闭
+            const overlay = document.getElementById('onboardingOverlay');
+            overlay.style.transition = 'opacity 0.3s ease';
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                overlay.style.opacity = '1'; // 恢复状态以防再次调用
+            }, 300);
+        }
+
     </script>
 </body>
 

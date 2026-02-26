@@ -1,12 +1,12 @@
 **点击访问静态版界面: [https://syhalex.github.io/](https://syhalex.github.io/)**
 
-**当前版本 20260224**
+**当前版本 20260226**
 
-*这是一个史无前例的巨大更新！*
+*这也是一个史无前例的巨大更新！*
 
-*总代码行数超5000行！*
+*总代码行数超6700行！*
 
-**文件说明:**
+**文件说明**
 
 *server.js*: 后端
 
@@ -14,18 +14,18 @@
 
 *login.html*: 前端注册/登录界面
 
+*admin-guide.html*: 管理员引导界面编辑器
+
 *uploads*: 媒体文件夹
+
+*uploads/guide*: 引导界面配图
 
 使用 node server.js 启动服务器时会生成数据库文件: *database.sqlite*
 
-**future plans:** 
+**未来计划** 
 
-1、完善搜索功能: 标签搜索; 
+1、真正的搭建论坛...
 
-2、完善reaction逻辑; 
+**已知问题**
 
-3、真正的论坛功能...
-
-**issues:**
-
-to be found...
+to be found

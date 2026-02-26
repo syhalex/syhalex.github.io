@@ -17,14 +17,51 @@ if (!fs.existsSync('./uploads')) {
 
 // --- Multer 配置 ---
 const storage = multer.diskStorage({
-    destination: './uploads/',
+    destination: (req, file, cb) => {
+        // 分用户的文件夹存储逻辑
+        const uid = req.body.uid || 'guest';
+        const dir = `./uploads/${uid}/`;
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
     filename: (req, file, cb) => {
         file.originalname = Buffer.from(file.originalname, "latin1").toString("utf8");
         cb(null, Date.now() + '-' + file.originalname);
     }
 });
+
+// 新手引导图片的特殊存储配置
+const guideStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = './uploads/guide/';
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        const pageIndex = req.query.index || 'unknown';
+        const ext = path.extname(file.originalname).toLowerCase() || '.png';
+        const filename = `guidepage${pageIndex}${ext}`;
+
+        // 删除旧文件，防止同一页替换不同后缀时堆积垃圾文件
+        const dir = './uploads/guide/';
+        if (fs.existsSync(dir)) {
+            const files = fs.readdirSync(dir);
+            for (const f of files) {
+                if (f.startsWith(`guidepage${pageIndex}.`)) {
+                    fs.unlinkSync(path.join(dir, f));
+                }
+            }
+        }
+        cb(null, filename);
+    }
+});
 const upload = multer({
     storage: storage,
+    limits: { fileSize: 50 * 1024 * 1024 }
+});
+
+const guideUpload = multer({
+    storage: guideStorage,
     limits: { fileSize: 50 * 1024 * 1024 }
 });
 
@@ -93,6 +130,12 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
             PRIMARY KEY (user_id, tweet_id),
             FOREIGN KEY (tweet_id) REFERENCES tweets(id) ON DELETE CASCADE
         )`);
+
+        // 站点配置表 (用于存放新手引导等统一配置)
+        db.run(`CREATE TABLE IF NOT EXISTS site_config (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )`);
     }
 });
 
@@ -121,10 +164,8 @@ function getReactionCount(data) {
 }
 
 // 工具函数：格式化推文供前端使用
-// 对于未注册的用户（visitor_xxx开头），昵称显示为“访客”或默认前缀
 function formatTweet(r, comments) {
-    const isVisitor = r.author_uid && r.author_uid.startsWith('visitor_');
-    const displayUser = r.registered_nick || (isVisitor ? '访客' : r.author_uid);
+    const displayUser = r.registered_nick || r.author_uid;
 
     // 解析二级评论
     const repliesMap = {};
@@ -132,8 +173,7 @@ function formatTweet(r, comments) {
     comments.forEach(c => {
         if (c.parent_id) {
             if (!repliesMap[c.parent_id]) repliesMap[c.parent_id] = [];
-            const cIsVisitor = c.author_uid && c.author_uid.startsWith('visitor_');
-            const cDisplayUser = c.registered_nick || (cIsVisitor ? '访客' : c.author_uid);
+            const cDisplayUser = c.registered_nick || c.author_uid;
             repliesMap[c.parent_id].push({
                 id: c.id,
                 user: cDisplayUser,
@@ -150,8 +190,7 @@ function formatTweet(r, comments) {
     const formattedComments = comments
         .filter(c => !c.parent_id)
         .map(c => {
-            const cIsVisitor = c.author_uid && c.author_uid.startsWith('visitor_');
-            const cDisplayUser = c.registered_nick || (cIsVisitor ? '访客' : c.author_uid);
+            const cDisplayUser = c.registered_nick || c.author_uid;
             return {
                 id: c.id,
                 user: cDisplayUser,
@@ -193,7 +232,7 @@ function formatTweet(r, comments) {
 
 // 注册
 app.post('/api/register', (req, res) => {
-    const { nickname, password, visitorId } = req.body;
+    const { nickname, password } = req.body;
 
     if (!nickname || !password) return res.status(400).json({ error: "昵称和密码不能为空" });
     if (!/^[a-zA-Z0-9_\-]+$/.test(nickname)) {
@@ -208,11 +247,7 @@ app.post('/api/register', (req, res) => {
             return res.status(500).json({ error: err.message });
         }
 
-        // 访客状态继承：如果传递了 visitorId，将之前的所有发帖和评论归入该注册账号名下
-        if (visitorId) {
-            db.run(`UPDATE tweets SET author_uid = ? WHERE author_uid = ?`, [nickname, visitorId]);
-            db.run(`UPDATE comments SET author_uid = ? WHERE author_uid = ?`, [nickname, visitorId]);
-        }
+
 
         res.status(201).json({ success: true, nickname });
     });
@@ -220,17 +255,13 @@ app.post('/api/register', (req, res) => {
 
 // 登录
 app.post('/api/login', (req, res) => {
-    const { nickname, password, visitorId } = req.body;
+    const { nickname, password } = req.body;
 
     db.get(`SELECT * FROM users WHERE nickname = ? AND password = ?`, [nickname, password], (err, row) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!row) return res.status(401).json({ error: "昵称不存在或密码错误" });
 
-        // 访客状态继承：如果传递了 visitorId，同理转移数据
-        if (visitorId) {
-            db.run(`UPDATE tweets SET author_uid = ? WHERE author_uid = ?`, [nickname, visitorId]);
-            db.run(`UPDATE comments SET author_uid = ? WHERE author_uid = ?`, [nickname, visitorId]);
-        }
+
 
         res.json({ success: true, user: { nickname: row.nickname, bio: row.bio, avatar: row.avatar } });
     });
@@ -255,7 +286,7 @@ app.get('/api/profile', (req, res) => {
 
     db.get(`SELECT nickname, bio, avatar, banner FROM users WHERE nickname = ?`, [uid], (err, row) => {
         if (err || !row) {
-            res.json({ nickname: "访客账户 (未注册)", bio: "发帖记录已暂时保存在当前浏览器。注册或登录以永久保存和同步您的数据。", avatar: null, banner: null, isVisitor: true });
+            res.json({ nickname: "游客账户", bio: "", avatar: null, banner: null, isVisitor: true });
         } else {
             res.json({ ...row, isVisitor: false });
         }
@@ -268,7 +299,7 @@ app.post('/api/profile', upload.fields([{ name: 'avatar', maxCount: 1 }, { name:
     if (!uid) return res.status(401).json({ error: "Unauthorized" });
 
     db.get(`SELECT nickname FROM users WHERE nickname = ?`, [uid], (err, row) => {
-        if (err || !row) return res.status(403).json({ error: "访客不能修改资料，请先注册" });
+        if (err || !row) return res.status(403).json({ error: "用户不存在，请先注册" });
 
         let updates = [];
         let params = [];
@@ -285,11 +316,15 @@ app.post('/api/profile', upload.fields([{ name: 'avatar', maxCount: 1 }, { name:
         }
         if (req.files && req.files['avatar'] && req.files['avatar'][0]) {
             updates.push("avatar = ?");
-            params.push(`http://localhost:5000/uploads/${req.files['avatar'][0].filename}`);
+            const file = req.files['avatar'][0];
+            const uidDir = req.body.uid || 'guest';
+            params.push(`http://localhost:5000/uploads/${uidDir}/${file.filename}`);
         }
         if (req.files && req.files['banner'] && req.files['banner'][0]) {
             updates.push("banner = ?");
-            params.push(`http://localhost:5000/uploads/${req.files['banner'][0].filename}`);
+            const file = req.files['banner'][0];
+            const uidDir = req.body.uid || 'guest';
+            params.push(`http://localhost:5000/uploads/${uidDir}/${file.filename}`);
         }
 
         if (updates.length > 0) {
@@ -303,12 +338,12 @@ app.post('/api/profile', upload.fields([{ name: 'avatar', maxCount: 1 }, { name:
                 }
                 const targetUid = (newNickname && newNickname !== uid) ? newNickname : uid;
                 db.get(`SELECT nickname, bio, avatar, banner FROM users WHERE nickname = ?`, [targetUid], (err, finalRow) => {
-                    res.json({ ...finalRow, isVisitor: false });
+                    res.json(finalRow);
                 });
             });
         } else {
             db.get(`SELECT nickname, bio, avatar, banner FROM users WHERE nickname = ?`, [uid], (err, finalRow) => {
-                res.json({ ...finalRow, isVisitor: false });
+                res.json(finalRow);
             });
         }
     });
@@ -356,6 +391,9 @@ app.get('/api/tweets', (req, res) => {
         params = [q, q, q];
     }
 
+    const { tags } = req.query;
+
+
     db.all(query, params, (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
 
@@ -376,7 +414,19 @@ app.get('/api/tweets', (req, res) => {
                 commentsByTweet[c.tweet_id].unshift(c);
             });
 
-            const formatted = rows.map(r => formatTweet(r, commentsByTweet[r.id] || []));
+            let formatted = rows.map(r => formatTweet(r, commentsByTweet[r.id] || []));
+
+            // Tag 过滤：如果指定了 tags 参数，只返回包含所有指定 tag 的推文
+            if (tags) {
+                const requiredTags = tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t);
+                if (requiredTags.length > 0) {
+                    formatted = formatted.filter(tweet => {
+                        const tweetTags = (tweet.tags || []).map(t => t.toLowerCase());
+                        return requiredTags.every(rt => tweetTags.includes(rt));
+                    });
+                }
+            }
+
             res.json(formatted);
         });
     });
@@ -390,7 +440,8 @@ app.post('/api/tweets', upload.array('files', 9), (req, res) => {
     const media = [];
     if (req.files && req.files.length > 0) {
         req.files.forEach(file => {
-            const url = `http://localhost:5000/uploads/${file.filename}`;
+            const userDir = uid || 'guest';
+            const url = `http://localhost:5000/uploads/${userDir}/${file.filename}`;
             const ext = path.extname(file.originalname).toLowerCase();
             const type = ['.mp4', '.webm', '.ogg', '.mov'].includes(ext) ? 'video' : 'image';
             media.push({ url, type });
@@ -430,7 +481,8 @@ app.put('/api/tweets/:id', upload.array('files', 9), (req, res) => {
         if (req.files && req.files.length > 0) {
             const media = [];
             req.files.forEach(file => {
-                const url = `http://localhost:5000/uploads/${file.filename}`;
+                const userDir = uid || 'guest';
+                const url = `http://localhost:5000/uploads/${userDir}/${file.filename}`;
                 const ext = path.extname(file.originalname).toLowerCase();
                 const type = ['.mp4', '.webm', '.ogg', '.mov'].includes(ext) ? 'video' : 'image';
                 media.push({ url, type });
@@ -654,6 +706,55 @@ app.get('/api/bookmarks', (req, res) => {
         });
         res.json(tweets);
     });
+});
+
+// === 接口: 网站配置 (新手引导) ===
+
+// 获取引导配置
+app.get('/api/guide', (req, res) => {
+    db.get(`SELECT value FROM site_config WHERE key = 'beginner_guide'`, (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.json({ steps: [] });
+        try {
+            res.json(JSON.parse(row.value));
+        } catch (e) {
+            res.json({ steps: [] });
+        }
+    });
+});
+
+// 更新引导配置
+app.post('/api/guide', (req, res) => {
+    const { steps } = req.body;
+    if (!Array.isArray(steps)) {
+        return res.status(400).json({ error: "Invalid data format" });
+    }
+
+    const value = JSON.stringify({ steps });
+
+    db.run(`INSERT OR REPLACE INTO site_config (key, value) VALUES ('beginner_guide', ?)`, [value], function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
+    });
+});
+
+// 通用文件上传 (用于指南编辑器等上传单张图片，如果仍有其它旧逻辑在用)
+app.post('/api/upload', upload.single('file'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+    }
+    const userDir = req.body.uid || 'guest';
+    const url = `http://localhost:5000/uploads/${userDir}/${req.file.filename}`;
+    res.json({ url });
+});
+
+// 新手引导专属文件上传
+app.post('/api/upload-guide', guideUpload.single('file'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+    }
+    const url = `http://localhost:5000/uploads/guide/${req.file.filename}`;
+    res.json({ url });
 });
 
 const PORT = 5000;

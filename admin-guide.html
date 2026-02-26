@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新手引导编辑器 - Cyber?Space</title>
+    <style>
+        :root {
+            --primary-color: #1d9bf0;
+            --primary-hover: #1a8cd8;
+            --bg-color: #000000;
+            --card-bg: #000000;
+            --text-color: #e7e9ea;
+            --text-secondary: #71767b;
+            --border-color: #2f3336;
+            --input-bg: #000000;
+            --transition-speed: 0.3s;
+        }
+
+        body.light-mode {
+            --primary-color: #1d9bf0;
+            --bg-color: #ffffff;
+            --card-bg: #ffffff;
+            --text-color: #0f1419;
+            --text-secondary: #536471;
+            --border-color: #eff3f4;
+            --input-bg: #eff3f4;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .step-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-secondary);
+            width: 30px;
+        }
+
+        .step-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .image-upload-area {
+            width: 100%;
+            height: 200px;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-upload-area:hover,
+        .image-upload-area.drag-over {
+            border-color: var(--primary-color);
+            background: rgba(29, 155, 240, 0.05);
+        }
+
+        .image-upload-area img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: none;
+            z-index: 1;
+        }
+
+        .image-upload-area span {
+            color: var(--text-secondary);
+            z-index: 0;
+            position: absolute;
+        }
+
+        textarea {
+            width: 100%;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            padding: 10px;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+            font-size: 1rem;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        textarea::-webkit-scrollbar {
+            display: none;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .step-title-input {
+            width: 100%;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            padding: 10px;
+            font-family: inherit;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .step-title-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .step-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s, opacity 0.2s;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+        }
+
+        button.btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        button.btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-mode button.btn-outline:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        button.btn-danger {
+            background: #f44336;
+        }
+
+        button.btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        .bottom-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .bottom-actions button {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+        }
+
+        /* ================= 顶部控制图标 (对称布局) ================= */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            z-index: 100;
+            overflow: hidden;
+            transition: background-color 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(29, 155, 240, 0.1);
+        }
+
+        .theme-toggle img {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            transition: opacity var(--transition-speed) ease, transform var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .icon-moon {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+
+        .icon-sun {
+            opacity: 0;
+            transform: scale(0.5) rotate(-90deg);
+        }
+
+        body.light-mode .icon-moon {
+            opacity: 0;
+            transform: scale(0.5) rotate(90deg);
+        }
+
+        body.light-mode .icon-sun {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+
+        /* 模态框预览 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .guide-modal {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 900px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            position: relative;
+        }
+
+        .guide-modal-img {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            object-fit: contain;
+        }
+
+        .guide-modal-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            white-space: pre-wrap;
+        }
+
+        .guide-modal-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border-color);
+            transition: 0.3s;
+        }
+
+        .dot.active {
+            background: var(--primary-color);
+            width: 20px;
+            border-radius: 4px;
+        }
+
+        .guide-modal-footer {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .close-modal-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .close-modal-btn:hover {
+            color: var(--text-color);
+            background: transparent;
+        }
+
+        /* 引导内容平滑过渡效果 */
+        .fade-transition {
+            transition: opacity 0.2s ease;
+            opacity: 1;
+        }
+
+        .fade-transition.fade-out {
+            opacity: 0;
+        }
+
+        /* Toast 提示 */
+        .toast {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(34, 197, 94, 0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-weight: bold;
+            z-index: 9999;
+            transition: top 0.4s;
+        }
+
+        .toast.show {
+            top: 20px;
+        }
+
+        .toast.error {
+            background: rgba(244, 67, 54, 0.9);
+        }
+    </style>
+</head>
+
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
+        <img src="https://img.icons8.com/?size=100&id=45475&format=png&color=FAB005" class="icon-sun" alt="Sun">
+        <img src="https://img.icons8.com/?size=100&id=84045&format=png&color=FAB005" class="icon-moon" alt="Moon">
+    </button>
+    <div class="toast" id="toast">保存成功</div>
+
+    <h1>新手引导编辑器</h1>
+
+    <div id="steps-container"></div>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <button class="btn-outline" onclick="addStep()">+ 添加引导步骤</button>
+    </div>
+
+    <div class="bottom-actions">
+        <button class="btn-outline" onclick="previewGuide()">预览</button>
+        <button onclick="publishGuide()">发布</button>
+    </div>
+
+    <!-- 预览模态框 -->
+    <div class="modal-overlay" id="preview-modal">
+        <div class="guide-modal" style="display: flex; flex-direction: column; overflow: hidden; max-height: 85vh;">
+            <button class="close-modal-btn" onclick="closePreview()">×</button>
+            <div id="preview-content-container" class="fade-transition"
+                style="display: flex; flex-direction: row; flex: 1; min-height: 0; align-items: stretch; justify-content: space-between; gap: 20px;">
+                <!-- 左侧文字 -->
+                <div
+                    style="flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: left; padding-right: 10px;">
+                    <div id="guide-modal-title"
+                        style="font-size: 1.8rem; font-weight: 800; margin-bottom: 15px; color: var(--text-color);">
+                    </div>
+                    <div class="guide-modal-text" id="guide-modal-text"
+                        style="font-size: 1.1rem; line-height: 1.6; white-space: pre-wrap;"></div>
+                </div>
+                <!-- 右侧图片 -->
+                <img src="" alt="" class="guide-modal-img" id="guide-modal-img"
+                    style="display: none; flex: 1; min-height: 0; object-fit: contain; max-width: 50%; max-height: 100%; margin-bottom: 0;">
+            </div>
+            <div class="guide-modal-footer-wrapper"
+                style="flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;">
+                <!-- 左侧：页码和指示点 -->
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div id="guide-modal-page-count"
+                        style="font-size: 1.5rem; font-weight: bold; color: var(--text-secondary); letter-spacing: 1px; line-height: 1;">
+                        1/1
+                    </div>
+                    <div class="guide-modal-dots" id="guide-modal-dots"
+                        style="margin: 0; display: flex; align-items: center;"></div>
+                </div>
+                <!-- 右侧：按钮 -->
+                <div class="guide-modal-footer" style="margin: 0;">
+                    <button class="btn-outline" id="guide-prev-btn" onclick="prevStep()">上一页</button>
+                    <button id="guide-next-btn" onclick="nextStep()">下一页</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let steps = [];
+        let previewIndex = 0;
+
+        // 初始化加载数据
+        async function loadConfig() {
+            try {
+                const res = await fetch('http://localhost:5000/api/guide');
+                const data = await res.json();
+                steps = data.steps || [];
+            } catch (err) {
+                console.error('加载失败', err);
+            }
+            if (steps.length === 0) {
+                steps.push({ title: '', imageUrl: '', text: '' });
+            }
+            renderSteps();
+        }
+
+        function renderSteps() {
+            const container = document.getElementById('steps-container');
+            container.innerHTML = '';
+
+            steps.forEach((step, index) => {
+                const stepEl = document.createElement('div');
+                stepEl.className = 'step-card';
+                stepEl.innerHTML = `
+                    <div class="step-number">${index + 1}</div>
+                    <div class="step-content">
+                        <input type="file" accept="image/*" style="display: none" id="file-${index}" onchange="uploadImage(event, ${index})">
+                        <div class="image-upload-area" onclick="document.getElementById('file-${index}').click()">
+                            <span>点击上传图片或将图片拖动至此处</span>
+                            <img src="${step.imageUrl}" style="display: ${step.imageUrl ? 'block' : 'none'}">
+                        </div>
+                        <input type="text" class="step-title-input" placeholder="输入该步骤的标题..." value="${step.title || ''}">
+                        <textarea placeholder="输入该步骤的描述文字...">${step.text}</textarea>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn-outline" onclick="moveUp(${index})" ${index === 0 ? 'disabled' : ''}>上移</button>
+                        <button class="btn-outline" onclick="moveDown(${index})" ${index === steps.length - 1 ? 'disabled' : ''}>下移</button>
+                        <button class="btn-danger" onclick="deleteStep(${index})">删除</button>
+                    </div>
+                `;
+
+                // 监听 textarea 变动实时保存到内存
+                const textarea = stepEl.querySelector('textarea');
+                textarea.addEventListener('input', (e) => {
+                    steps[index].text = e.target.value;
+                });
+
+                // 监听 title 变动
+                const titleInput = stepEl.querySelector('.step-title-input');
+                titleInput.addEventListener('input', (e) => {
+                    steps[index].title = e.target.value;
+                });
+
+                // 拖拽上传支持
+                const uploadArea = stepEl.querySelector('.image-upload-area');
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('drag-over');
+                });
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.classList.remove('drag-over');
+                });
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('drag-over');
+                    const file = e.dataTransfer.files[0];
+                    if (file) {
+                        uploadImage(file, index);
+                    }
+                });
+
+                container.appendChild(stepEl);
+            });
+        }
+
+        function addStep() {
+            steps.push({ title: '', imageUrl: '', text: '' });
+            renderSteps();
+        }
+
+        function deleteStep(index) {
+            steps.splice(index, 1);
+            if (steps.length === 0) steps.push({ imageUrl: '', text: '' });
+            renderSteps();
+        }
+
+        function moveUp(index) {
+            if (index > 0) {
+                [steps[index - 1], steps[index]] = [steps[index], steps[index - 1]];
+                renderSteps();
+            }
+        }
+
+        function moveDown(index) {
+            if (index < steps.length - 1) {
+                [steps[index], steps[index + 1]] = [steps[index + 1], steps[index]];
+                renderSteps();
+            }
+        }
+
+        async function uploadImage(eventOrFile, index) {
+            let file;
+            if (eventOrFile instanceof File) {
+                file = eventOrFile;
+            } else {
+                file = eventOrFile.target.files[0];
+            }
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                // 将 index 作为查询参数传入，便于后端控制命名与清理旧文件
+                const res = await fetch(`http://localhost:5000/api/upload-guide?index=${index + 1}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.url) {
+                    steps[index].imageUrl = data.url;
+                    renderSteps();
+                }
+            } catch (err) {
+                showToast("图片上传失败", true);
+            }
+        }
+
+        async function publishGuide() {
+            try {
+                const res = await fetch('http://localhost:5000/api/guide', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ steps: steps })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast("发布成功！主站已同步。");
+                } else {
+                    showToast("发布失败", true);
+                }
+            } catch (err) {
+                showToast("网络错误", true);
+            }
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            if (isError) toast.classList.add('error');
+            else toast.classList.remove('error');
+
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        /* === 预览相关 === */
+        function previewGuide() {
+            if (steps.length === 0) return;
+
+            // 预加载所有图片，避免预览切换时高度拉伸动画卡顿
+            steps.forEach(step => {
+                if (step.imageUrl) {
+                    const preloadImg = new Image();
+                    preloadImg.src = step.imageUrl;
+                }
+            });
+
+            previewIndex = 0;
+            updateModalUI();
+            document.getElementById('preview-modal').classList.add('show');
+        }
+
+        function closePreview() {
+            document.getElementById('preview-modal').classList.remove('show');
+        }
+
+        function updateModalUI() {
+            const step = steps[previewIndex];
+            const imgEl = document.getElementById('guide-modal-img');
+            if (step.imageUrl) {
+                imgEl.src = step.imageUrl;
+                imgEl.style.display = 'block';
+            } else {
+                imgEl.style.display = 'none';
+            }
+
+            document.getElementById('guide-modal-title').textContent = step.title || '';
+            document.getElementById('guide-modal-title').style.display = step.title ? 'block' : 'none';
+            document.getElementById('guide-modal-text').textContent = step.text || '（暂无文字描述）';
+
+            // 更新页码 x/y
+            const pageCountEl = document.getElementById('guide-modal-page-count');
+            if (pageCountEl) {
+                pageCountEl.textContent = `${previewIndex + 1}/${steps.length}`;
+            }
+
+            const dotsContainer = document.getElementById('guide-modal-dots');
+            dotsContainer.innerHTML = '';
+            for (let i = 0; i < steps.length; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'dot' + (i === previewIndex ? ' active' : '');
+                dotsContainer.appendChild(dot);
+            }
+
+            document.getElementById('guide-prev-btn').style.visibility = previewIndex === 0 ? 'hidden' : 'visible';
+
+            const nextBtn = document.getElementById('guide-next-btn');
+            if (previewIndex === steps.length - 1) {
+                nextBtn.textContent = '完成';
+            } else {
+                nextBtn.textContent = '下一页';
+            }
+        }
+
+        function nextStep() {
+            if (previewIndex < steps.length - 1) {
+                const container = document.getElementById('preview-content-container');
+                const modal = document.querySelector('.guide-modal');
+
+                // 1. 记录并固定旧高度，准备执行高度拉伸动画
+                const oldHeight = modal.getBoundingClientRect().height;
+                modal.style.height = oldHeight + 'px';
+                modal.style.transition = 'height 0.2s ease';
+
+                container.classList.add('fade-out');
+                setTimeout(() => {
+                    previewIndex++;
+
+                    // 2. 临时恢复 auto 以渲染新内容并测量新高度
+                    modal.style.height = 'auto';
+                    updateModalUI();
+                    const newHeight = modal.getBoundingClientRect().height;
+
+                    // 3. 恢复为旧高度，强制浏览器重排
+                    modal.style.height = oldHeight + 'px';
+                    modal.offsetHeight; // force reflow
+
+                    // 4. 将高度设置为新的目标高度，触发 CSS 过渡
+                    modal.style.height = newHeight + 'px';
+                    container.classList.remove('fade-out');
+
+                    // 5. 动画结束后，清除内联样式，保持响应式
+                    setTimeout(() => {
+                        modal.style.height = '';
+                        modal.style.transition = '';
+                    }, 200);
+                }, 200);
+            } else {
+                closePreview();
+            }
+        }
+
+        function prevStep() {
+            if (previewIndex > 0) {
+                const container = document.getElementById('preview-content-container');
+                const modal = document.querySelector('.guide-modal');
+
+                // 1. 记录并固定旧高度，准备执行高度拉伸动画
+                const oldHeight = modal.getBoundingClientRect().height;
+                modal.style.height = oldHeight + 'px';
+                modal.style.transition = 'height 0.2s ease';
+
+                container.classList.add('fade-out');
+                setTimeout(() => {
+                    previewIndex--;
+
+                    // 2. 临时恢复 auto 以渲染新内容并测量新高度
+                    modal.style.height = 'auto';
+                    updateModalUI();
+                    const newHeight = modal.getBoundingClientRect().height;
+
+                    // 3. 恢复为旧高度，强制浏览器重排
+                    modal.style.height = oldHeight + 'px';
+                    modal.offsetHeight; // force reflow
+
+                    // 4. 将高度设置为新的目标高度，触发 CSS 过渡
+                    modal.style.height = newHeight + 'px';
+                    container.classList.remove('fade-out');
+
+                    // 5. 动画结束后，清除内联样式，保持响应式
+                    setTimeout(() => {
+                        modal.style.height = '';
+                        modal.style.transition = '';
+                    }, 200);
+                }, 200);
+            }
+        }
+
+        // 主题切换
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('admin_theme', isLight ? 'light' : 'dark');
+        }
+
+        // 初始化
+        if (localStorage.getItem('admin_theme') === 'light') {
+            document.body.classList.add('light-mode');
+        }
+        loadConfig();
+
+    </script>
+</body>
+
+</html>

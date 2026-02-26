@@ -115,40 +115,41 @@
         }
 
         .auth-container {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
+            background: transparent;
+            border: none;
             border-radius: 16px;
             padding: 40px;
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            text-align: center;
+            box-shadow: none;
+            text-align: left;
         }
 
         .logo {
             font-size: 2rem;
             font-weight: 900;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             color: var(--text-color);
+            text-align: left;
         }
 
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .tab {
-            flex: 1;
-            padding: 12px;
-            cursor: pointer;
-            font-weight: bold;
+        .switch-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
             color: var(--text-secondary);
+            font-size: 0.9rem;
         }
 
-        .tab.active {
-            color: var(--text-color);
-            border-bottom: 3px solid var(--primary-color);
+        .switch-link a {
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .switch-link a:hover {
+            text-decoration: underline;
         }
 
         .form-group {
@@ -221,12 +222,7 @@
     </div>
 
     <div class="auth-container">
-        <div class="logo">登录/注册</div>
-
-        <div class="tabs">
-            <div class="tab active" id="tab-login" onclick="switchTab('login')">登录</div>
-            <div class="tab" id="tab-register" onclick="switchTab('register')">注册</div>
-        </div>
+        <div class="logo" id="formTitle">登录</div>
 
         <div id="form-login">
             <div class="form-group">
@@ -239,6 +235,7 @@
             </div>
             <div class="error-msg" id="login-error"></div>
             <button class="submit-btn" onclick="handleAuth('login')">登录</button>
+            <div class="switch-link">没有账号？<a onclick="switchTab('register')">请先注册</a></div>
         </div>
 
         <div id="form-register" style="display: none;">
@@ -252,7 +249,8 @@
                 <input type="password" id="register-password" placeholder="请设置6-16位密码">
             </div>
             <div class="error-msg" id="register-error"></div>
-            <button class="submit-btn" onclick="handleAuth('register')">注册并绑定</button>
+            <button class="submit-btn" onclick="handleAuth('register')">注册</button>
+            <div class="switch-link">已有账号？<a onclick="switchTab('login')">去登录</a></div>
         </div>
     </div>
 
@@ -267,12 +265,9 @@
             localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
         });
 
-        // 标签切换
+        // 表单切换
         function switchTab(mode) {
-            document.getElementById('tab-login').classList.remove('active');
-            document.getElementById('tab-register').classList.remove('active');
-            document.getElementById(`tab-${mode}`).classList.add('active');
-
+            document.getElementById('formTitle').innerText = mode === 'login' ? '登录' : '注册';
             document.getElementById('form-login').style.display = mode === 'login' ? 'block' : 'none';
             document.getElementById('form-register').style.display = mode === 'register' ? 'block' : 'none';
 
@@ -282,11 +277,10 @@
 
         // 以游客浏览
         function continueAsVisitor() {
-            let visitorId = localStorage.getItem('visitor_id');
-            if (!visitorId) {
-                visitorId = 'visitor_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-                localStorage.setItem('visitor_id', visitorId);
-            }
+            // 每次点击“以游客身份浏览”都生成全新的游客ID，保证重新触发引导等逻辑
+            const newVisitorId = 'visitor_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            localStorage.setItem('visitor_id', newVisitorId);
+
             // Clear logged in uid if exists
             localStorage.removeItem('uid');
             window.location.href = 'index.html';
@@ -324,18 +318,13 @@
 
                 // 只有注册时提示弱密码
                 if (/^\d+$/.test(password) && !isWeakWarningShown) {
-                    errorEl.innerText = '密码较弱，建议修改';
+                    errorEl.innerText = '密码较弱，建议修改\n再次点击"注册/保存"仍可使用此密码';
                     isWeakWarningShown = true;
                     return;
                 }
             }
 
-            const visitorId = localStorage.getItem('visitor_id');
             const payload = { nickname: username, password: password };
-            // 如果存在 visitorId，则传给后端使其自动转移以前的数据
-            if (visitorId) {
-                payload.visitorId = visitorId;
-            }
 
             try {
                 const response = await fetch(`http://localhost:5000/api/${mode}`, {
@@ -349,7 +338,7 @@
                 if (response.ok) {
                     // 登录或注册成功
                     localStorage.setItem('uid', username);
-                    localStorage.removeItem('visitor_id'); // 转移完成，清除游客标记
+                    localStorage.removeItem('visitor_id');
                     window.location.href = 'index.html';
                 } else {
                     errorEl.innerText = data.error || '发生未知错误';

@@ -41,9 +41,190 @@
             color: var(--text-color);
             margin: 0;
             display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .left-panel {
+            flex: 1;
+            display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            position: relative;
+        }
+
+        .right-panel {
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            .right-panel {
+                flex: 1;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: var(--bg-color);
+            }
+        }
+
+        .anim-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+            width: 100%;
+            max-width: 600px;
+            margin-top: -10vh;
+            /* 整体位置上移 */
+        }
+
+        .anim-text {
+            font-size: 2.2rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px;
+            letter-spacing: 2px;
+            min-height: 48px;
+            text-align: left;
+        }
+
+        .anim-subtext {
+            font-size: 1.5rem;
+            /* 字号调大 */
+            color: var(--text-secondary);
+            font-weight: 500;
+            letter-spacing: 1px;
+            min-height: 40px;
+            text-align: left;
+        }
+
+        .anim-dot {
+            width: 24px;
+            height: 24px;
+            background-color: var(--text-color);
+            border-radius: 50%;
+            animation: pulse-dot 1.4s infinite ease-in-out;
+        }
+
+        @keyframes pulse-dot {
+            0% {
+                transform: scale(0.85);
+                opacity: 0.4;
+            }
+
+            50% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0.85);
+                opacity: 0.4;
+            }
+        }
+
+        /* 文字向左滑动淡出动画 */
+        .slide-out-left {
+            transform: translateX(-20px);
+            opacity: 0;
+            transition: all 0.4s ease-out;
+            pointer-events: none;
+        }
+
+        /* ================= 迷你新手引导展示页 (Onboarding Player) ================= */
+        .onboarding-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: transparent;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            pointer-events: none;
+            /* 初始不可点击 */
+        }
+
+        .onboarding-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .onboarding-modal {
+            background: var(--card-bg);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 900px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            /* 减弱阴影效果 */
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: scale(0.95);
+            transition: transform 0.8s ease;
+        }
+
+        .onboarding-overlay.show .onboarding-modal {
+            transform: scale(1);
+        }
+
+        .onboarding-image {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .onboarding-slide h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1.4rem;
+        }
+
+        .onboarding-slide p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .onboarding-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .onboarding-dots {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        /* 轮播向左滑出和从右边滑入的动画 */
+        .slide-transition {
+            transition: transform 0.4s ease, opacity 0.4s ease;
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .slide-transition.slide-out {
+            transform: translateX(-30px);
+            opacity: 0;
+        }
+
+        .slide-transition.slide-prepare {
+            transition: none;
+            transform: translateX(30px);
+            opacity: 0;
         }
 
         .header {
@@ -53,6 +234,8 @@
             display: flex;
             gap: 15px;
             align-items: center;
+            z-index: 1000;
+            /* 确保始终在最上层 */
         }
 
         .visitor-btn {
@@ -95,23 +278,23 @@
         }
 
         .icon-moon {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+
+        .icon-sun {
             opacity: 0;
             transform: scale(0.5) rotate(-90deg);
         }
 
-        .icon-sun {
-            opacity: 1;
-            transform: scale(1) rotate(0deg);
-        }
-
         body.light-mode .icon-moon {
-            opacity: 1;
-            transform: scale(1) rotate(0deg);
+            opacity: 0;
+            transform: scale(0.5) rotate(90deg);
         }
 
         body.light-mode .icon-sun {
-            opacity: 0;
-            transform: scale(0.5) rotate(90deg);
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
         }
 
         .auth-container {
@@ -221,36 +404,80 @@
         </button>
     </div>
 
-    <div class="auth-container">
-        <div class="logo" id="formTitle">登录</div>
+    <div class="left-panel">
+        <div class="auth-container">
+            <div class="logo" id="formTitle">登录</div>
 
-        <div id="form-login">
-            <div class="form-group">
-                <label>昵称</label>
-                <input type="text" id="login-username" placeholder="请输入昵称" maxlength="20">
+            <div id="form-login">
+                <div class="form-group">
+                    <label>昵称</label>
+                    <input type="text" id="login-username" placeholder="请输入昵称" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="login-password" placeholder="请输入密码">
+                </div>
+                <div class="error-msg" id="login-error"></div>
+                <button class="submit-btn" onclick="handleAuth('login')">登录</button>
+                <div class="switch-link">没有账号？<a onclick="switchTab('register')">请先注册</a></div>
             </div>
-            <div class="form-group">
-                <label>密码</label>
-                <input type="password" id="login-password" placeholder="请输入密码">
+
+            <div id="form-register" style="display: none;">
+                <div class="form-group">
+                    <label>昵称</label>
+                    <input type="text" id="register-username" placeholder="输入大小写字母、数字、_、-" maxlength="20">
+                    <div class="hint">作为全局唯一标识符。</div>
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="register-password" placeholder="请设置6-16位密码">
+                </div>
+                <div class="error-msg" id="register-error"></div>
+                <button class="submit-btn" onclick="handleAuth('register')">注册</button>
+                <div class="switch-link">已有账号？<a onclick="switchTab('login')">去登录</a></div>
             </div>
-            <div class="error-msg" id="login-error"></div>
-            <button class="submit-btn" onclick="handleAuth('login')">登录</button>
-            <div class="switch-link">没有账号？<a onclick="switchTab('register')">请先注册</a></div>
+        </div>
+    </div>
+
+    <div class="right-panel" style="position: relative;">
+        <div class="anim-container" id="welcomeAnimContainer" style="transition: all 0.8s ease;">
+            <div class="anim-text">
+                <span id="typewriter-line1"></span>
+                <div class="anim-dot"></div>
+            </div>
+            <div class="anim-subtext" id="typewriter-line2"></div>
         </div>
 
-        <div id="form-register" style="display: none;">
-            <div class="form-group">
-                <label>昵称</label>
-                <input type="text" id="register-username" placeholder="输入大小写字母、数字、_、-" maxlength="20">
-                <div class="hint">作为全局唯一标识符。</div>
+        <div id="loginGuideOverlay" class="onboarding-overlay">
+            <div class="onboarding-modal">
+                <div id="dynamicOnboardingContainer" class="slide-transition"
+                    style="display: flex; flex-direction: row; flex: 1; min-height: 0; align-items: stretch; justify-content: space-between; gap: 20px;">
+                    <!-- 左侧文字 -->
+                    <div
+                        style="flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: left; padding-right: 10px;">
+                        <div id="guideUserTitle"
+                            style="font-size: 1.8rem; font-weight: 800; margin-bottom: 15px; color: var(--text-color);">
+                        </div>
+                        <div id="guideUserText"
+                            style="line-height: 1.6; font-size: 1.05rem; overflow-y: auto; white-space: pre-wrap;">
+                            加载中...</div>
+                    </div>
+                    <!-- 右侧图片 -->
+                    <img src="" class="onboarding-image" id="guideUserImg" alt="预览"
+                        style="display:none; flex: 1; min-height: 0; object-fit: contain; max-width: 50%; max-height: 100%; margin-bottom: 0;">
+                </div>
+
+                <div class="onboarding-footer fade-transition" id="onboardingFooter"
+                    style="display: flex; flex-shrink: 0; align-items: center; justify-content: flex-start;">
+                    <!-- 仅包含页码和指示点，隐去“跳过”和“下一步” -->
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div class="onboarding-dots" id="guideUserDots"
+                            style="margin: 0; display: flex; align-items: center;">
+                            <!-- 动态生成的小圆点 -->
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label>密码</label>
-                <input type="password" id="register-password" placeholder="请设置6-16位密码">
-            </div>
-            <div class="error-msg" id="register-error"></div>
-            <button class="submit-btn" onclick="handleAuth('register')">注册</button>
-            <div class="switch-link">已有账号？<a onclick="switchTab('login')">去登录</a></div>
         </div>
     </div>
 
@@ -290,6 +517,23 @@
 
         document.getElementById('login-password').addEventListener('input', () => { isWeakWarningShown = false; });
         document.getElementById('register-password').addEventListener('input', () => { isWeakWarningShown = false; });
+
+        // 回车键导航和提交
+        ['login', 'register'].forEach(mode => {
+            document.getElementById(`${mode}-username`).addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById(`${mode}-password`).focus();
+                }
+            });
+
+            document.getElementById(`${mode}-password`).addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAuth(mode);
+                }
+            });
+        });
 
         // 处理登录或注册
         async function handleAuth(mode) {
@@ -347,6 +591,149 @@
                 errorEl.innerText = '网络连接失败，请检查服务器是否运行。';
             }
         }
+
+
+        // --- 引导轮播核心逻辑 ---
+        let onboardingSteps = [];
+        let currentOnboardingSlide = 0;
+        let autoplayInterval;
+
+        async function fetchGuideData() {
+            try {
+                const res = await fetch(`http://localhost:5000/api/guide`);
+                const data = await res.json();
+                onboardingSteps = data.steps || [];
+
+                // 预加载所有幻灯片图片，避免由于加载延迟导致高度拉伸动画卡顿或失效
+                onboardingSteps.forEach(step => {
+                    if (step.imageUrl) {
+                        const preloadImg = new Image();
+                        preloadImg.src = step.imageUrl;
+                    }
+                });
+            } catch (err) {
+                console.error("无法加载新手引导", err);
+            }
+        }
+
+        function renderGuideSlide() {
+            if (onboardingSteps.length === 0) return;
+            const step = onboardingSteps[currentOnboardingSlide];
+
+            const imgEl = document.getElementById('guideUserImg');
+            const titleEl = document.getElementById('guideUserTitle');
+            const textEl = document.getElementById('guideUserText');
+
+            if (step.imageUrl) {
+                imgEl.src = step.imageUrl;
+                imgEl.style.display = 'block';
+            } else {
+                imgEl.style.display = 'none';
+            }
+
+            if (titleEl) {
+                titleEl.textContent = step.title || '';
+                titleEl.style.display = step.title ? 'block' : 'none';
+            }
+            textEl.textContent = step.text || '（暂无文字描述）';
+
+            // 渲染圆点
+            const dotsContainer = document.getElementById('guideUserDots');
+            dotsContainer.innerHTML = '';
+            for (let i = 0; i < onboardingSteps.length; i++) {
+                const dot = document.createElement('div');
+                dot.style.cssText = `width: 8px; height: 8px; border-radius: 50%; background: var(--border-color); transition: 0.3s;`;
+                if (i === currentOnboardingSlide) {
+                    dot.style.background = 'var(--primary-color)';
+                    dot.style.width = '20px';
+                    dot.style.borderRadius = '4px';
+                }
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        function handleSlideTransition() {
+            if (onboardingSteps.length === 0) return;
+            const container = document.getElementById('dynamicOnboardingContainer');
+
+            // 1. 当前内容向左滑出并变透明
+            container.classList.add('slide-out');
+
+            setTimeout(() => {
+                // 2. 瞬间把容器移动到右侧待命（取消过渡动画）
+                container.classList.remove('slide-out');
+                container.classList.add('slide-prepare');
+
+                // 3. 换数据并渲染
+                currentOnboardingSlide = (currentOnboardingSlide + 1) % onboardingSteps.length;
+                renderGuideSlide();
+
+                // 4. 下一帧恢复过渡动画，解除待命状态，从右侧滑回归位
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        container.classList.remove('slide-prepare');
+                    });
+                });
+            }, 400); // 等待滑出动画完成 (0.4s)
+        }
+
+        function startGuideShowcase() {
+            if (onboardingSteps.length === 0) return; // DB里没有引导则不强制展示
+
+            // Render first page immediately
+            currentOnboardingSlide = 0;
+            renderGuideSlide();
+
+            // Display the modal
+            const overlay = document.getElementById('loginGuideOverlay');
+            overlay.classList.add('show');
+
+            // Set up auto advancement loop every 4 seconds
+            autoplayInterval = setInterval(handleSlideTransition, 4000);
+        }
+
+        // 打字机效果动画逻辑
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 背景静默预加载轮播图数据
+            await fetchGuideData();
+
+            const line1 = "开始吧";
+            const line2 = "欢迎访问syh借助antigravity开发的网站";
+            const el1 = document.getElementById('typewriter-line1');
+            const el2 = document.getElementById('typewriter-line2');
+            const container = document.getElementById('welcomeAnimContainer');
+
+            let i = 0;
+            function typeLine1() {
+                if (i < line1.length) {
+                    el1.innerHTML += line1.charAt(i);
+                    i++;
+                    setTimeout(typeLine1, 80); // 调快第一行速度
+                } else {
+                    setTimeout(typeLine2, 200); // 换行停顿缩短
+                }
+            }
+
+            let j = 0;
+            function typeLine2() {
+                if (j < line2.length) {
+                    el2.innerHTML += line2.charAt(j);
+                    j++;
+                    setTimeout(typeLine2, 40); // 调快第二行速度
+                } else {
+                    // 打字最终结束, 等待几秒后让内容幻灯片式滑出左侧，然后显示新手引导播放器
+                    setTimeout(() => {
+                        container.classList.add('slide-out-left');
+                        setTimeout(() => {
+                            container.style.display = 'none'; // DOM移除防止干扰
+                            startGuideShowcase();
+                        }, 400); // 对应CSS中的0.4s slide-out-left
+                    }, 1500); // 停留时间稍微缩短到1.5秒
+                }
+            }
+
+            setTimeout(typeLine1, 500);
+        });
     </script>
 </body>
 

@@ -370,6 +370,7 @@
             resize: none;
             outline: none;
             font-size: 1.1rem;
+            font-family: inherit;
             box-sizing: border-box;
         }
 
@@ -377,9 +378,14 @@
             display: none;
         }
 
-        textarea:focus {
-            box-shadow:
-                0 0 0 1.2px var(--primary-color);
+        .post-area-divider {
+            margin: 10px 0;
+            border-top: 1px solid var(--border-color);
+            transition: border-top-color 0.2s;
+        }
+
+        textarea:focus~.post-area-divider {
+            border-top-color: var(--primary-color);
         }
 
         .toolbar {
@@ -2215,7 +2221,7 @@
                     <div id="previewMedia"></div>
                 </div>
 
-                <div style="border-top: 1px solid var(--border-color); margin: 10px 0;"></div>
+                <div class="post-area-divider"></div>
 
                 <div class="toolbar">
                     <div class="tools-left">
@@ -2436,7 +2442,8 @@
         async function executeDeleteAccount() {
             closeDeleteAccountModal();
             await fetch(`${API_BASE}/profile?uid=${encodeURIComponent(currentUser)}`, { method: 'DELETE' });
-            logout();
+            localStorage.removeItem('hasSeenOnboarding_' + currentUser);
+            confirmLogout();
         }
 
         const ICONS = {
@@ -2833,7 +2840,7 @@
                         profileCard.style.alignItems = 'center';
                         profileCard.style.justifyContent = 'space-between';
 
-                        btn.innerText = "登录/注册";
+                        btn.innerText = "登录 / 注册";
                         btn.onclick = () => window.location.href = 'login.html';
                         btn.style.marginTop = '0';
                         btn.style.width = '75%';
@@ -3437,13 +3444,34 @@
 
         // 处理用户选择的文件（图片或视频）并创建本地预览
         function handleFileSelect() {
-            const files = Array.from(document.getElementById('fileInput').files);
-            if (!files.length) return;
+            const allFiles = Array.from(document.getElementById('fileInput').files);
+            if (!allFiles.length) return;
+
+            const MAX_SIZE = 100 * 1024 * 1024; // 100MB
+            const validFiles = [];
+            let hasLargeFile = false;
+
+            allFiles.forEach(file => {
+                if (file.size > MAX_SIZE) {
+                    hasLargeFile = true;
+                } else {
+                    validFiles.push(file);
+                }
+            });
+
+            if (hasLargeFile) {
+                showToast('单个文件大小不能超过 100MB', 'error');
+            }
+
+            if (!validFiles.length) {
+                document.getElementById('fileInput').value = '';
+                return;
+            }
 
             // 合并已有文件，限制最多9个
-            const combined = [...currentPostFiles, ...files];
+            const combined = [...currentPostFiles, ...validFiles];
             if (combined.length > 9) {
-                alert('最多只能上传9个文件');
+                showToast('最多只能上传9个文件', 'error');
                 currentPostFiles = combined.slice(0, 9);
             } else {
                 currentPostFiles = combined;
@@ -4703,7 +4731,7 @@
             }, 200);
         }
 
-        window.addEventListener('load', () => {
+        document.addEventListener('DOMContentLoaded', () => {
             setTimeout(checkOnboarding, 500); // 延迟半秒弹出，体验更佳
         });
 

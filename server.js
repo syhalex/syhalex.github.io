@@ -57,12 +57,12 @@ const guideStorage = multer.diskStorage({
 });
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 50 * 1024 * 1024 }
+    limits: { fileSize: 100 * 1024 * 1024 }
 });
 
 const guideUpload = multer({
     storage: guideStorage,
-    limits: { fileSize: 50 * 1024 * 1024 }
+    limits: { fileSize: 100 * 1024 * 1024 }
 });
 
 app.use('/uploads', express.static('uploads'));

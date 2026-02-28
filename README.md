@@ -1,6 +1,6 @@
 **点击访问静态版界面: [https://syhalex.github.io/](https://syhalex.github.io/)**
 
-**当前版本 20260227**
+**当前版本 20260228**
 
 *更新了登录/注册页面*
 
@@ -19,6 +19,8 @@
 *uploads*: 媒体文件夹
 
 *uploads/guide*: 引导界面配图
+
+*scripts*: 脚本文件夹
 
 使用 node server.js 启动服务器时会生成数据库文件: *database.sqlite*
 

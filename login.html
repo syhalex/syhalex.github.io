@@ -554,6 +554,19 @@
                     errorEl.innerText = '昵称只能包含大小写字母、数字、下划线和短横线';
                     return;
                 }
+
+                // 先检查昵称是否存在
+                try {
+                    const checkRes = await fetch(`http://localhost:5000/api/check-nickname?nickname=${encodeURIComponent(username)}`);
+                    const checkData = await checkRes.json();
+                    if (!checkData.available) {
+                        errorEl.innerText = '昵称已被注册，请尝试其他昵称';
+                        return;
+                    }
+                } catch (err) {
+                    console.error("Nickname check failed:", err);
+                }
+
                 const passRegex = /^[a-zA-Z0-9_]{6,16}$/;
                 if (!passRegex.test(password)) {
                     errorEl.innerText = '请输入6-16位大小写字母/数字/下划线组成的密码';
@@ -698,7 +711,7 @@
             await fetchGuideData();
 
             const line1 = "开始吧";
-            const line2 = "欢迎访问syh借助antigravity开发的网站";
+            const line2 = "欢迎访问syh借助Antigravity开发的网站";
             const el1 = document.getElementById('typewriter-line1');
             const el2 = document.getElementById('typewriter-line2');
             const container = document.getElementById('welcomeAnimContainer');
